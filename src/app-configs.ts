@@ -18,7 +18,7 @@ const appName = encodeURI("Archive Process DevMode");
 const environment = "LOCAL-DEV";
 
 export const eventConfigs: SchedulerConfigs = {
-    RUN_ARCHIVE: 30 * 60_000,
+    RUN_ARCHIVE: 1 * 60_000,
 };
 
 export const sentryOptions: NodeOptions = {
