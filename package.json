@@ -19,6 +19,7 @@
         "run:healthcheck": "node --es-module-specifier-resolution=node healthcheck.js"
     },
     "dependencies": {
+        "@jest/globals": "^29.6.2",
         "@ldb/scheduler": "^1.0.1",
         "@ldb/types": "^1.0.3",
         "@ldb/utils": "^0.1.2",
