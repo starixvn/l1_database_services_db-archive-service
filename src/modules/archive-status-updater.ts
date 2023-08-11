@@ -9,9 +9,6 @@ export class ArchiveStatusUpdater {
 
     constructor(private readonly archiveStatusCollection: Collection, private readonly targetMongoClient: MongoClient) {
         this.selfBound();
-
-        this.archiveStatusCollection = archiveStatusCollection;
-        this.targetMongoClient = targetMongoClient;
     }
 
     private get className() {

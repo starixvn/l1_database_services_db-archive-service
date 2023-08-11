@@ -25,14 +25,11 @@ const BULK_WRITE_THRESHOLD = 1_000;
 export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
     private emitters: Set<ArchiveProcessor> = new Set();
 
-    private archiveFlag: Map<[ChangeStreamNameSpace, ChangeStreamNameSpace], boolean> = new Map();
+    private archiveFlag: Map<string, boolean> = new Map();
 
     constructor(private readonly sourceMongoClient: MongoClient, private readonly targetMongoClient: MongoClient) {
         super();
         this.selfBound();
-
-        this.sourceMongoClient = sourceMongoClient;
-        this.targetMongoClient = targetMongoClient;
     }
 
     get className() {
@@ -55,50 +52,56 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
     }
 
     private async copySingle(
+        id: number,
         sourceNamespace: ChangeStreamNameSpace,
         targetNamespace: ChangeStreamNameSpace,
         filter: Document,
         dataOptions: CopySingleCollectionDataOptions,
         archiveStatusOptions?: ArchiveStatusConfig
     ) {
-        const flag = this.archiveFlag.get([sourceNamespace, targetNamespace]);
+        const { db: sourceDb, coll: sourceColl } = sourceNamespace;
+        const { db: targetDb, coll: targetColl } = targetNamespace;
+
+        const flagName = `#${id} [${sourceDb}.${sourceColl}] => [${targetDb}.${targetColl}]`;
+        const flag = this.archiveFlag.get(flagName);
 
         if (flag) {
-            const { db: sourceDb, coll: sourceColl } = sourceNamespace;
-            const { db: targetDb, coll: targetColl } = targetNamespace;
-            logger.logWarning(this.className, `Archive process [${sourceDb}.${sourceColl}] => [${targetDb}.${targetColl}] is running!`);
+            logger.logWarning(this.className, `Archive process ${flagName} is running!`);
             return;
         }
 
         try {
-            this.archiveFlag.set([sourceNamespace, targetNamespace], true);
+            this.archiveFlag.set(flagName, true);
             await this.copySingleCollectionData(sourceNamespace, targetNamespace, filter, dataOptions, archiveStatusOptions);
         } finally {
-            this.archiveFlag.set([sourceNamespace, targetNamespace], false);
+            this.archiveFlag.set(flagName, false);
         }
     }
 
     private async copyMultiple(
+        id: number,
         sourceNamespace: ChangeStreamNameSpace,
         targetNamespace: ChangeStreamNameSpace,
         filter: Document,
         dataOptions: CopyMultipleCollectionsDataOptions,
         archiveStatusOptions?: ArchiveStatusConfig
     ) {
-        const flag = this.archiveFlag.get([sourceNamespace, targetNamespace]);
+        const { db: sourceDb, coll: sourceColl } = sourceNamespace;
+        const { db: targetDb, coll: targetColl } = targetNamespace;
+
+        const flagName = `#${id} [${sourceDb}.${sourceColl}] => [${targetDb}.${targetColl}]`;
+        const flag = this.archiveFlag.get(flagName);
 
         if (flag) {
-            const { db: sourceDb, coll: sourceColl } = sourceNamespace;
-            const { db: targetDb, coll: targetColl } = targetNamespace;
-            logger.logWarning(this.className, `Archive process [${sourceDb}.${sourceColl}] => [${targetDb}.${targetColl}] is running!`);
+            logger.logWarning(this.className, `Archive process ${flagName} is running!`);
             return;
         }
 
         try {
-            this.archiveFlag.set([sourceNamespace, targetNamespace], true);
+            this.archiveFlag.set(flagName, true);
             await this.copyMultipleCollectionData(sourceNamespace, targetNamespace, filter, dataOptions, archiveStatusOptions);
         } finally {
-            this.archiveFlag.set([sourceNamespace, targetNamespace], false);
+            this.archiveFlag.set(flagName, false);
         }
     }
 
@@ -316,7 +319,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
             const { ok, matchedCount, upsertedCount, modifiedCount } = bulkWriteResult;
             logger.logDebug(
                 { ok, matchedCount, upsertedCount, modifiedCount },
-                { title: `[${this.className}.bulkWrite]`, subject: collection.namespace }
+                { title: `${this.className}.bulkWrite`, subject: collection.namespace }
             );
         } catch (error: unknown) {
             this.handleError(error);

@@ -16,11 +16,6 @@ export class Monitor {
         private readonly archiveStatusUpdater: ArchiveStatusUpdater
     ) {
         this.selfBound();
-
-        this.nodeEnv = nodeEnv;
-        this.scheduler = scheduler;
-        this.archiveInitiator = archiveInitiator;
-
         this.reportUnhandleErrors();
     }
 

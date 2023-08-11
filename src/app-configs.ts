@@ -5,13 +5,13 @@ import { SERVICE_VERSION } from "./service-version";
 
 const sourceDb = {
     credential: "lmn_archive:LmnArchive",
-    server: "10.10.50.12:39101,10.10.50.13:39101,10.10.50.14:39101",
-    replSet: "L1pLocal",
+    server: "10.10.50.12:39100,10.10.50.13:39100,10.10.50.14:39100",
+    replSet: "L1Local",
 };
 const targetDb = {
     credential: "lmn_archive:LmnArchive",
-    server: "10.10.50.12:39101,10.10.50.13:39101,10.10.50.14:39101",
-    replSet: "L1pLocal",
+    server: "10.10.50.12:39100,10.10.50.13:39100,10.10.50.14:39100",
+    replSet: "L1Local",
 };
 const appName = encodeURI("Archive Process DevMode");
 

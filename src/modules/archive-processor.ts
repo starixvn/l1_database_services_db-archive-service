@@ -7,10 +7,18 @@ import { ArchiveInitiator } from "./archive-initiator";
 
 type CopyDataEvents = {
     COPY_SINGLE: (
-        ...args: [ChangeStreamNameSpace, ChangeStreamNameSpace, Document, CopySingleCollectionDataOptions, ArchiveStatusConfig | undefined]
+        ...args: [
+            number,
+            ChangeStreamNameSpace,
+            ChangeStreamNameSpace,
+            Document,
+            CopySingleCollectionDataOptions,
+            ArchiveStatusConfig | undefined
+        ]
     ) => MaybePromise<void>;
     COPY_MULTIPLE: (
         ...args: [
+            number,
             ChangeStreamNameSpace,
             ChangeStreamNameSpace,
             Document,
@@ -26,9 +34,6 @@ export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
     constructor(private readonly sourceMongoClient: MongoClient, private readonly targetMongoClient: MongoClient) {
         super();
         this.selfBound();
-
-        this.sourceMongoClient = sourceMongoClient;
-        this.targetMongoClient = targetMongoClient;
     }
 
     get className() {
@@ -50,6 +55,7 @@ export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
 
     private processSingleCollectionArchive(archiveConfig: ArchiveConfig) {
         const {
+            id,
             gameConfigs: { name },
             from,
             to,
@@ -61,11 +67,12 @@ export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
 
         const copyDataOptions: CopySingleCollectionDataOptions = { name, updateOnly, timeAlias };
 
-        this.emit("COPY_SINGLE", from, to, filter, copyDataOptions, log);
+        this.emit("COPY_SINGLE", id, from, to, filter, copyDataOptions, log);
     }
 
     private async processMultipleCollectionsArchive(archiveConfig: ArchiveConfig) {
         const {
+            id,
             gameConfigs,
             from,
             to,
@@ -91,7 +98,7 @@ export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
         const { name } = gameConfigs;
         const copyDataOptions: CopyMultipleCollectionsDataOptions = { name, updateOnly, timeAlias, localField, childArchiveConfigs };
 
-        this.emit("COPY_MULTIPLE", from, to, filter, copyDataOptions, log);
+        this.emit("COPY_MULTIPLE", id, from, to, filter, copyDataOptions, log);
     }
 
     subscribe(emitter: ArchiveInitiator): boolean {

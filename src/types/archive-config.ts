@@ -30,6 +30,7 @@ export type SchemaChildArchiveConfig = {
 export type SchemaArchiveConfig = {
     category: string;
     type: number;
+    id: number;
     gameConfigs: GameConfigInfo;
     from: SchemaNamespacePostfix;
     to: SchemaNamespacePostfix;
@@ -60,6 +61,7 @@ export type ChildArchiveConfig = {
 };
 
 export type ArchiveConfig = {
+    id: number;
     gameConfigs: GameConfigInfo;
     from: ChangeStreamNameSpace;
     to: ChangeStreamNameSpace;

@@ -14,8 +14,8 @@ export const sentry = new SentryLogger(sentryOptions);
 
 export const skynex = new SkynexLogger(skynexOptions);
 
-const { NODE_ENV: nodeEnv } = process.env;
-const defaultSeverityLevel = (nodeEnv ?? "DEVELOPMENT") === "DEVELOPMENT" ? "debug" : "log";
+const { NODE_ENV: nodeEnv = "DEVELOPMENT" } = process.env;
+const defaultSeverityLevel = nodeEnv === "DEVELOPMENT" ? "debug" : "log";
 export const terminal = new TerminalLogger(defaultSeverityLevel);
 
 export const logger = {

@@ -84,8 +84,6 @@ export class ArchiveInitiator extends TypedEventEmitter<ArchiveInitiatorEvents> 
 
     constructor(private archiveConfigCollection: Collection) {
         super();
-        this.archiveConfigCollection = archiveConfigCollection;
-
         this.selfBound();
     }
 

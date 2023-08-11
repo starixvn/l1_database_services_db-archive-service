@@ -15,10 +15,13 @@ import { SERVICE_VERSION } from "./service-version";
 
     const sourceMongoClient = new MongoClient(database.sourceUrl);
     const archiveMongoClient = new MongoClient(database.archiveUrl);
-    const container = new ContainerRegistry().register(sourceMongoClient, archiveMongoClient).registerScheduler(eventConfigs).registerNamespaces(namespaces);
+    const container = new ContainerRegistry()
+        .register(sourceMongoClient, archiveMongoClient)
+        .registerScheduler(eventConfigs)
+        .registerNamespaces(namespaces);
 
     const monitor: Monitor = container.resolve("monitor");
     monitor.run();
 
-    logger.logInfo("", `Data Summaries Service v${SERVICE_VERSION} has been started!`, false);
+    logger.logInfo("", `Data Archive Service v${SERVICE_VERSION} has been started!`, false);
 })();
