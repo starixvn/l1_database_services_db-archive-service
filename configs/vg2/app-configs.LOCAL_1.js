@@ -12,7 +12,7 @@ const targetDb = {
 };
 const appName = encodeURI("Archive Process");
 
-const environment = "LOCAL-0";
+const environment = "LOCAL-1";
 
 export const eventConfigs = {
     RUN_ARCHIVE: 30 * 60_000,
@@ -30,7 +30,7 @@ export const sentryOptions = {
 export const skynexOptions = {
     token: "0A40aOc7CtpzjbBSJu8KNWQRoXyjRvf9",
     environment,
-    conversationIds: { NotiChannel: -1001964283718 },
+    conversationIds: { NotiChannel: -1001604444158 },
 };
 
 export const hostingPort = 5000;

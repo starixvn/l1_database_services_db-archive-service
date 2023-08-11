@@ -30,7 +30,7 @@ export const sentryOptions = {
 export const skynexOptions = {
     token: "0A40aOc7CtpzjbBSJu8KNWQRoXyjRvf9",
     environment,
-    conversationIds: { NotiChannel: -1001964283718 },
+    conversationIds: { NotiChannel: -1001604444158 },
 };
 
 export const hostingPort = 5000;
