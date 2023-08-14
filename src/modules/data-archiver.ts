@@ -1,15 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { MaybePromise, TypedEventEmitter } from "@ldb/types";
-import {
-    AnyBulkWriteOperation,
-    BulkWriteOptions,
-    ChangeStreamNameSpace,
-    Collection,
-    Document,
-    FindOptions,
-    MongoClient,
-    MongoServerError,
-} from "mongodb";
+import { AnyBulkWriteOperation, BulkWriteOptions, ChangeStreamNameSpace, Collection, Document, FindOptions, MongoClient, MongoServerError } from "mongodb";
 import { logger } from "../loggers";
 import { ArchiveStatusConfig } from "../types/archive-config";
 import { CopyMultipleCollectionsDataOptions, CopySingleCollectionDataOptions } from "../types/archive-options";
@@ -140,7 +131,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
             updateStatusOperations.push({
                 updateOne: {
                     filter: { _id },
-                    update: { $set: { "__archive.eventtime": data[timeAlias] ?? new Date() } },
+                    update: { $set: { "__archive.eventtime": data[timeAlias] == null ? new Date() : { $toDate: { $literal: data[timeAlias] } } } },
                 },
             });
 
@@ -231,16 +222,11 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                     childUpdateStatusOperations.push({
                         updateOne: {
                             filter: { _id: _idChild },
-                            update: {
-                                $set: { "__archive.eventtime": data[timeAlias] ?? new Date() },
-                            },
+                            update: { $set: { "__archive.eventtime": data[timeAlias] == null ? new Date() : { $toDate: { $literal: data[timeAlias] } } } },
                         },
                     });
 
-                    if (
-                        childCopyDataOperations.length >= BULK_WRITE_THRESHOLD ||
-                        childUpdateStatusOperations.length >= BULK_WRITE_THRESHOLD
-                    ) {
+                    if (childCopyDataOperations.length >= BULK_WRITE_THRESHOLD || childUpdateStatusOperations.length >= BULK_WRITE_THRESHOLD) {
                         childUpdateOnly || (await this.executeBulkWrite(toCollection, childCopyDataOperations));
                         await this.executeBulkWrite(fromCollection, childUpdateStatusOperations);
 
@@ -261,7 +247,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
             parentUpdateStatusOperations.push({
                 updateOne: {
                     filter: { _id },
-                    update: { $set: { "__archive.eventtime": data[timeAlias] ?? new Date() } },
+                    update: { $set: { "__archive.eventtime": data[timeAlias] == null ? new Date() : { $toDate: { $literal: data[timeAlias] } } } },
                 },
             });
 
@@ -317,10 +303,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
             const bulkWriteOptions: BulkWriteOptions = { ordered: false, willRetryWrite: true, retryWrites: true };
             const bulkWriteResult = await collection.bulkWrite(bulkWriteOperations, bulkWriteOptions);
             const { ok, matchedCount, upsertedCount, modifiedCount } = bulkWriteResult;
-            logger.logDebug(
-                { ok, matchedCount, upsertedCount, modifiedCount },
-                { title: `${this.className}.bulkWrite`, subject: collection.namespace }
-            );
+            logger.logDebug({ ok, matchedCount, upsertedCount, modifiedCount }, { title: `${this.className}.bulkWrite`, subject: collection.namespace });
         } catch (error: unknown) {
             this.handleError(error);
         }

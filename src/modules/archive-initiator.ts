@@ -3,15 +3,7 @@ import { MaybePromise, TypedEventEmitter } from "@ldb/types";
 import { EJSON } from "bson";
 import { ChangeStreamNameSpace, Collection, Document } from "mongodb";
 import { logger } from "../loggers";
-import {
-    ArchiveConfig,
-    ArchiveConfigDetail,
-    ChildArchiveConfig,
-    ChildArchiveConfigDetail,
-    GameConfigInfo,
-    SchemaArchiveConfig,
-    SchemaChildArchiveConfig,
-} from "../types/archive-config";
+import { ArchiveConfig, ArchiveConfigDetail, ChildArchiveConfig, ChildArchiveConfigDetail, GameConfigInfo, SchemaArchiveConfig, SchemaChildArchiveConfig } from "../types/archive-config";
 
 type ArchiveInitiatorEvents = {
     ARCHIVE: (...args: [ArchiveConfig]) => MaybePromise<void>;
@@ -29,7 +21,7 @@ export class ArchiveInitiator extends TypedEventEmitter<ArchiveInitiatorEvents> 
         parseFilter["__archive.eventtime"] = { $exists: false };
 
         if (timeField && cutoffTime) {
-            parseFilter.time = { $lt: cutoffTime };
+            parseFilter["$expr"] = { $lt: [{ $toDate: `$${timeField}` }, `$${cutoffTime}`] };
         }
 
         return parseFilter;
