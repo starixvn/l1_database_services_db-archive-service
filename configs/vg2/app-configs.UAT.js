@@ -31,6 +31,11 @@ export const skynexOptions = {
     token: "0A40aOc7CtpzjbBSJu8KNWQRoXyjRvf9",
     environment,
     conversationIds: { NotiChannel: -1001604444158 },
+    proxy: {
+        protocol: "http",
+        host: "10.2.252.100",
+        port: 8801,
+    },
 };
 
 export const hostingPort = 5000;
