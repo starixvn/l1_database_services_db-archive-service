@@ -39,7 +39,7 @@ export class ArchiveInitiator extends TypedEventEmitter<ArchiveInitiatorEvents> 
             ...restConfigs
         } = rawConfig;
         const { name } = gameConfigs;
-        const { time } = alias;
+        const { time = "" } = alias;
         const { cutOffsetHours = 0, localField, updateOnly = false } = rawConfigDetail;
 
         const from: ChangeStreamNameSpace = { db: fromDb, coll: [name, fromPostfix].filter(Boolean).join("") };
