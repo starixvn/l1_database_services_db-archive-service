@@ -1,3 +1,4 @@
+import { stringify } from "@ldb/utils";
 import { ChangeStreamNameSpace, Collection, Document, FindOptions, MongoClient, UpdateOptions } from "mongodb";
 import { logger } from "../loggers";
 import { ArchiveStatusConfig } from "../types/archive-config";
@@ -29,16 +30,12 @@ export class ArchiveStatusUpdater {
         const logValue = await targetCollection.findOne({}, logValueFindOptions);
 
         if (!logValue || !logValue.value) {
-            logger.logWarning(this.className, `Skip archive status update [${targetCollection.namespace}] = ${logValue}`);
+            logger.logWarning(this.className, `Skip archive status update [${targetCollection.namespace}] = ${stringify(logValue)}`);
             return;
         }
         const archiveStatusValue = logValue.value;
         const updateOptions: UpdateOptions = { upsert: true, willRetryWrite: true, retryWrites: true };
-        const updateArchiveStatusResult = await this.archiveStatusCollection.updateOne(
-            filter,
-            { $set: { [`lastArcId.${field}`]: archiveStatusValue } },
-            updateOptions
-        );
+        const updateArchiveStatusResult = await this.archiveStatusCollection.updateOne(filter, { $set: { [`lastArcId.${field}`]: archiveStatusValue } }, updateOptions);
 
         const { modifiedCount, upsertedCount } = updateArchiveStatusResult;
         if (modifiedCount + upsertedCount > 0) {
