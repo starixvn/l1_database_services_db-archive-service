@@ -15,7 +15,7 @@ const appName = encodeURI("Archive Process");
 const environment = "LOCAL-2";
 
 export const eventConfigs = {
-    RUN_ARCHIVE: 30 * 60_000,
+    RUN_ARCHIVE: 10 * 60_000,
 };
 
 export const sentryOptions = {
