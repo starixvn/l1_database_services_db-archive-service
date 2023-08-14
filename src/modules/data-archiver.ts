@@ -120,6 +120,9 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
         for await (const document of cursor) {
             const { _id, ...data } = document;
 
+            let eventtime = new Date(Date.parse(data[timeAlias]));
+            eventtime = isNaN(eventtime.valueOf()) ? new Date() : eventtime;
+
             updateOnly ||
                 copyDataOperations.push({
                     updateOne: {
@@ -131,7 +134,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
             updateStatusOperations.push({
                 updateOne: {
                     filter: { _id },
-                    update: { $set: { "__archive.eventtime": data[timeAlias] == null ? new Date() : { $toDate: { $literal: data[timeAlias] } } } },
+                    update: { $set: { "__archive.eventtime": eventtime } },
                 },
             });
 
@@ -191,6 +194,9 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
         for await (const parentDocument of parentDataCursor) {
             const { _id, ...data } = parentDocument;
 
+            let eventtime = new Date(Date.parse(data[timeAlias]));
+            eventtime = isNaN(eventtime.valueOf()) ? new Date() : eventtime;
+
             for (const childArchiveConfig of childArchiveConfigs) {
                 const {
                     from,
@@ -222,7 +228,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                     childUpdateStatusOperations.push({
                         updateOne: {
                             filter: { _id: _idChild },
-                            update: { $set: { "__archive.eventtime": data[timeAlias] == null ? new Date() : { $toDate: { $literal: data[timeAlias] } } } },
+                            update: { $set: { "__archive.eventtime": eventtime } },
                         },
                     });
 
@@ -247,7 +253,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
             parentUpdateStatusOperations.push({
                 updateOne: {
                     filter: { _id },
-                    update: { $set: { "__archive.eventtime": data[timeAlias] == null ? new Date() : { $toDate: { $literal: data[timeAlias] } } } },
+                    update: { $set: { "__archive.eventtime": eventtime } },
                 },
             });
 

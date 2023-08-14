@@ -21,7 +21,7 @@ export class ArchiveInitiator extends TypedEventEmitter<ArchiveInitiatorEvents> 
         parseFilter["__archive.eventtime"] = { $exists: false };
 
         if (timeField && cutoffTime) {
-            parseFilter["$expr"] = { $lt: [{ $toDate: `$${timeField}` }, `$${cutoffTime}`] };
+            parseFilter["$expr"] = { $lt: [{ $toDate: `$${timeField}` }, { $literal: cutoffTime }] };
         }
 
         return parseFilter;
