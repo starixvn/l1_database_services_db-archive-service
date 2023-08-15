@@ -59,11 +59,6 @@ export class Monitor {
 
     private async devMode() {
         this.scheduler.on("RUN_ARCHIVE", this.devEventLogger.bind(this, this.scheduler.constructor.name, "RUN_ARCHIVE"));
-        // this.archiveInitiator.on("ARCHIVE", this.devEventLogger.bind(this, this.archiveInitiator.className, "ARCHIVE"));
-        // this.archiveProcessor.on("COPY_SINGLE", this.devEventLogger.bind(this, this.archiveProcessor.className, "COPY_SINGLE"));
-        // this.archiveProcessor.on("COPY_MULTIPLE", this.devEventLogger.bind(this, this.archiveProcessor.className, "COPY_MULTIPLE"));
-        // this.dataArchiver.on("UPDATE_ARCHIVE_STATUS", this.devEventLogger.bind(this, this.dataArchiver.className, "UPDATE_ARCHIVE_STATUS"));
-
         this.scheduler.emit("RUN_ARCHIVE");
     }
     private devEventLogger(title: string, subject: string, ...args: unknown[]) {

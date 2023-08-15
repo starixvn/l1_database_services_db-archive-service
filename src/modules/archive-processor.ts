@@ -7,29 +7,15 @@ import { ArchiveInitiator } from "./archive-initiator";
 
 type CopyDataEvents = {
     COPY_SINGLE: (
-        ...args: [
-            number,
-            ChangeStreamNameSpace,
-            ChangeStreamNameSpace,
-            Document,
-            CopySingleCollectionDataOptions,
-            ArchiveStatusConfig | undefined
-        ]
+        ...args: [number, ChangeStreamNameSpace, ChangeStreamNameSpace, Document, CopySingleCollectionDataOptions, ArchiveStatusConfig | undefined]
     ) => MaybePromise<void>;
     COPY_MULTIPLE: (
-        ...args: [
-            number,
-            ChangeStreamNameSpace,
-            ChangeStreamNameSpace,
-            Document,
-            CopyMultipleCollectionsDataOptions,
-            ArchiveStatusConfig | undefined
-        ]
+        ...args: [number, ChangeStreamNameSpace, ChangeStreamNameSpace, Document, CopyMultipleCollectionsDataOptions, ArchiveStatusConfig | undefined]
     ) => MaybePromise<void>;
 };
 
 export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
-    private emitters: Set<ArchiveInitiator> = new Set();
+    private readonly emitters: Set<ArchiveInitiator> = new Set();
 
     constructor(private readonly sourceMongoClient: MongoClient, private readonly targetMongoClient: MongoClient) {
         super();

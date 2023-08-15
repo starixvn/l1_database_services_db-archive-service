@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { MaybePromise, TypedEventEmitter } from "@ldb/types";
 import { AnyBulkWriteOperation, BulkWriteOptions, ChangeStreamNameSpace, Collection, Document, FindOptions, MongoClient, MongoServerError } from "mongodb";
 import { logger } from "../loggers";
 import { ArchiveStatusConfig } from "../types/archive-config";
 import { CopyMultipleCollectionsDataOptions, CopySingleCollectionDataOptions } from "../types/archive-options";
+import { getNamespaceString } from "../utils/mongodb-helpers";
 import { ArchiveProcessor } from "./archive-processor";
 
 type DataArchiverEvents = {
@@ -14,9 +14,9 @@ const BULK_WRITE_THRESHOLD = 1_000;
 
 /** Listen for signal from `ArchiveProcess` to execute data archive process */
 export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
-    private emitters: Set<ArchiveProcessor> = new Set();
+    private readonly emitters: Set<ArchiveProcessor> = new Set();
 
-    private archiveFlag: Map<string, boolean> = new Map();
+    private readonly archiveFlag: Map<string, boolean> = new Map();
 
     constructor(private readonly sourceMongoClient: MongoClient, private readonly targetMongoClient: MongoClient) {
         super();
@@ -108,9 +108,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
 
         const { name, updateOnly, timeAlias } = dataOptions;
 
-        if (archiveStatusOptions) {
-            this.emit("UPDATE_ARCHIVE_STATUS", targetNamespace, { name }, archiveStatusOptions);
-        }
+        this.emitUpdateArchiveStatus(targetNamespace, { name }, archiveStatusOptions);
 
         const cursor = sourceCollection.find(filter, { noCursorTimeout: true });
 
@@ -153,9 +151,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
             await this.executeBulkWrite(sourceCollection, updateStatusOperations);
         }
 
-        if (archiveStatusOptions) {
-            this.emit("UPDATE_ARCHIVE_STATUS", targetNamespace, { name }, archiveStatusOptions);
-        }
+        this.emitUpdateArchiveStatus(targetNamespace, { name }, archiveStatusOptions);
     }
 
     private async copyMultipleCollectionData(
@@ -167,20 +163,16 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
     ) {
         const { name, updateOnly, timeAlias, localField, childArchiveConfigs } = dataOptions;
 
-        if (archiveStatusOptions) {
-            this.emit("UPDATE_ARCHIVE_STATUS", targetNamespace, { name }, archiveStatusOptions);
-        }
+        this.emitUpdateArchiveStatus(targetNamespace, { name }, archiveStatusOptions);
 
-        const copyDataOperations: Map<ChangeStreamNameSpace, AnyBulkWriteOperation[]> = new Map();
-        const updateStatusOperations: Map<ChangeStreamNameSpace, AnyBulkWriteOperation[]> = new Map();
+        const copyDataOperations: Map<string, AnyBulkWriteOperation[]> = new Map();
+        const updateStatusOperations: Map<string, AnyBulkWriteOperation[]> = new Map();
 
         for (const { from, to, log: childArchiveStatusOptions } of childArchiveConfigs) {
-            if (childArchiveStatusOptions) {
-                this.emit("UPDATE_ARCHIVE_STATUS", to, { name }, childArchiveStatusOptions);
-            }
+            this.emitUpdateArchiveStatus(to, { name }, childArchiveStatusOptions);
 
-            copyDataOperations.set(to, []);
-            updateStatusOperations.set(from, []);
+            copyDataOperations.set(getNamespaceString(to), []);
+            updateStatusOperations.set(getNamespaceString(from), []);
         }
 
         const sourceCollection = this.getSourceCollection(sourceNamespace);
@@ -205,8 +197,10 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                     config: { foreignField, updateOnly: childUpdateOnly },
                 } = childArchiveConfig;
 
-                const fromCollection = this.getSourceCollection(from)!;
-                const toCollection = this.getTargetCollection(to)!;
+                const fromNamespace = getNamespaceString(from);
+                const toNamespace = getNamespaceString(to);
+                const fromCollection = this.getSourceCollection(from);
+                const toCollection = this.getTargetCollection(to);
 
                 const filter = { ...childFilter, [foreignField]: data[localField] };
                 const childDataCursor = fromCollection.find(filter, findOptions);
@@ -214,8 +208,8 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                 for await (const childDocument of childDataCursor) {
                     const { _id: _idChild, ...dataChild } = childDocument;
 
-                    const childCopyDataOperations = copyDataOperations.get(to)!;
-                    const childUpdateStatusOperations = updateStatusOperations.get(from)!;
+                    const childCopyDataOperations = this.ensureMapGet(copyDataOperations, fromNamespace, []);
+                    const childUpdateStatusOperations = this.ensureMapGet(updateStatusOperations, toNamespace, []);
 
                     childUpdateOnly ||
                         childCopyDataOperations.push({
@@ -236,8 +230,8 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                         childUpdateOnly || (await this.executeBulkWrite(toCollection, childCopyDataOperations));
                         await this.executeBulkWrite(fromCollection, childUpdateStatusOperations);
 
-                        copyDataOperations.set(to, []);
-                        updateStatusOperations.set(from, []);
+                        copyDataOperations.set(fromNamespace, []);
+                        updateStatusOperations.set(toNamespace, []);
                     }
                 }
             }
@@ -274,11 +268,11 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                 log: childArchiveStatusOptions,
             } = childArchiveConfig;
 
-            const fromCollection = this.getSourceCollection(from)!;
-            const toCollection = this.getTargetCollection(to)!;
+            const fromCollection = this.getSourceCollection(from);
+            const toCollection = this.getTargetCollection(to);
 
-            const childCopyDataOperations = copyDataOperations.get(to)!;
-            const childUpdateStatusOperations = updateStatusOperations.get(from)!;
+            const childCopyDataOperations = this.ensureMapGet(copyDataOperations, getNamespaceString(to), []);
+            const childUpdateStatusOperations = this.ensureMapGet(updateStatusOperations, getNamespaceString(from), []);
 
             if (!childUpdateOnly && childCopyDataOperations.length > 0) {
                 await this.executeBulkWrite(toCollection, childCopyDataOperations);
@@ -287,9 +281,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                 await this.executeBulkWrite(fromCollection, childUpdateStatusOperations);
             }
 
-            if (childArchiveStatusOptions) {
-                this.emit("UPDATE_ARCHIVE_STATUS", to, { name }, childArchiveStatusOptions);
-            }
+            this.emitUpdateArchiveStatus(to, { name }, childArchiveStatusOptions);
         }
 
         if (!updateOnly && parentCopyDataOperations.length > 0) {
@@ -299,8 +291,23 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
             await this.executeBulkWrite(sourceCollection, parentUpdateStatusOperations);
         }
 
+        this.emitUpdateArchiveStatus(targetNamespace, { name }, archiveStatusOptions);
+    }
+
+    private ensureMapGet<K, V>(mapObject: Map<K, V>, key: K, defaultValue: V) {
+        const returnValue = mapObject.get(key);
+
+        if (returnValue) {
+            return returnValue;
+        } else {
+            mapObject.set(key, defaultValue);
+            return defaultValue;
+        }
+    }
+
+    private emitUpdateArchiveStatus(targetNamespace: ChangeStreamNameSpace, filter: Document, archiveStatusOptions: ArchiveStatusConfig | undefined): void {
         if (archiveStatusOptions) {
-            this.emit("UPDATE_ARCHIVE_STATUS", targetNamespace, { name }, archiveStatusOptions);
+            this.emit("UPDATE_ARCHIVE_STATUS", targetNamespace, filter, archiveStatusOptions);
         }
     }
 

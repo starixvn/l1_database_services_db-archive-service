@@ -6,7 +6,7 @@ import { DataArchiver } from "./data-archiver";
 
 /** Listen for signal from `DataArchiver` to update latest archive status */
 export class ArchiveStatusUpdater {
-    private emitters: Set<DataArchiver> = new Set();
+    private readonly emitters: Set<DataArchiver> = new Set();
 
     constructor(private readonly archiveStatusCollection: Collection, private readonly targetMongoClient: MongoClient) {
         this.selfBound();
