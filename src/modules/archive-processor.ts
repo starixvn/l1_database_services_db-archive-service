@@ -108,7 +108,7 @@ export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
         }
 
         this.emitters.add(emitter);
-        emitter.addListener<"ARCHIVE">("ARCHIVE", this.processArchive);
+        emitter.addListener("ARCHIVE", this.processArchive);
         return true;
     }
 
@@ -118,7 +118,7 @@ export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
             return false;
         }
 
-        emitter.removeListener<"ARCHIVE">("ARCHIVE", this.processArchive);
+        emitter.removeListener("ARCHIVE", this.processArchive);
         this.emitters.delete(emitter);
         return true;
     }
