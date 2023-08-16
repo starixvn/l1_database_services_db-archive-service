@@ -4,6 +4,7 @@ import { logger } from "../loggers";
 import { ArchiveStatusConfig } from "../types/archive-config";
 import { CopyMultipleCollectionsDataOptions, CopySingleCollectionDataOptions } from "../types/archive-options";
 import { getNamespaceString } from "../utils/mongodb-helpers";
+import { ensureTime } from "../utils/time-utils";
 import { ArchiveProcessor } from "./archive-processor";
 import { CollectionBulkWriter } from "./collection-bulk-writer";
 import { MapAssert } from "./map-assert";
@@ -119,8 +120,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
         for await (const document of cursor) {
             const { _id, ...data } = document;
 
-            let eventtime = new Date(Date.parse(data[timeAlias]));
-            eventtime = isNaN(eventtime.valueOf()) ? new Date() : eventtime;
+            const eventtime = ensureTime(data[timeAlias]);
 
             copyDataOperations.push({ updateOne: { filter: { _id }, update: { $set: data }, upsert: true } }, updateOnly);
             updateStatusOperations.push({ updateOne: { filter: { _id }, update: { $set: { "__archive.eventtime": eventtime } } } });
@@ -172,8 +172,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
         for await (const parentDocument of parentDataCursor) {
             const { _id, ...data } = parentDocument;
 
-            let eventtime = new Date(Date.parse(data[timeAlias]));
-            eventtime = isNaN(eventtime.valueOf()) ? new Date() : eventtime;
+            const eventtime = ensureTime(data[timeAlias]);
 
             for (const childArchiveConfig of childArchiveConfigs) {
                 const {
