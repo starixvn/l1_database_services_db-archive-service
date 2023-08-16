@@ -13,7 +13,7 @@ export class ArchiveStatusUpdater {
     }
 
     private get className() {
-        return this.constructor.name;
+        return "ArchiveStatusUpdater";
     }
 
     private selfBound() {
@@ -50,7 +50,7 @@ export class ArchiveStatusUpdater {
         }
 
         this.emitters.add(emitter);
-        emitter.addListener<"UPDATE_ARCHIVE_STATUS">("UPDATE_ARCHIVE_STATUS", this.updateArchiveStatus);
+        emitter.addListener("UPDATE_ARCHIVE_STATUS", this.updateArchiveStatus);
         return true;
     }
 
@@ -60,7 +60,7 @@ export class ArchiveStatusUpdater {
             return false;
         }
 
-        emitter.removeListener<"UPDATE_ARCHIVE_STATUS">("UPDATE_ARCHIVE_STATUS", this.updateArchiveStatus);
+        emitter.removeListener("UPDATE_ARCHIVE_STATUS", this.updateArchiveStatus);
         this.emitters.delete(emitter);
         return true;
     }

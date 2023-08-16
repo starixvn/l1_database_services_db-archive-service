@@ -23,7 +23,7 @@ export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
     }
 
     get className() {
-        return this.constructor.name;
+        return "ArchiveProcessor";
     }
 
     private selfBound() {

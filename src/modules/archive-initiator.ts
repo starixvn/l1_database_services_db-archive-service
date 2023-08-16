@@ -88,7 +88,7 @@ export class ArchiveInitiator extends TypedEventEmitter<ArchiveInitiatorEvents> 
     }
 
     get className(): string {
-        return this.constructor.name;
+        return "ArchiveInitiator";
     }
 
     protected selfBound() {
