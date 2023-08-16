@@ -1,16 +1,15 @@
 import { MaybePromise, TypedEventEmitter } from "@ldb/types";
-import { AnyBulkWriteOperation, BulkWriteOptions, ChangeStreamNameSpace, Collection, Document, FindOptions, MongoClient, MongoServerError } from "mongodb";
+import { BulkWriteOptions, ChangeStreamNameSpace, Document, FindOptions, MongoClient } from "mongodb";
 import { logger } from "../loggers";
 import { ArchiveStatusConfig } from "../types/archive-config";
 import { CopyMultipleCollectionsDataOptions, CopySingleCollectionDataOptions } from "../types/archive-options";
 import { getNamespaceString } from "../utils/mongodb-helpers";
 import { ArchiveProcessor } from "./archive-processor";
+import { CollectionBulkWriter } from "./collection-bulk-writer";
 
 type DataArchiverEvents = {
     UPDATE_ARCHIVE_STATUS: (...args: [ChangeStreamNameSpace, Document, ArchiveStatusConfig]) => MaybePromise<void>;
 };
-
-const BULK_WRITE_THRESHOLD = 1_000;
 
 /** Listen for signal from `ArchiveProcess` to execute data archive process */
 export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
@@ -24,7 +23,7 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
     }
 
     get className() {
-        return this.constructor.name;
+        return "DataArchiver";
     }
 
     private selfBound() {
@@ -112,8 +111,9 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
 
         const cursor = sourceCollection.find(filter, { noCursorTimeout: true });
 
-        let copyDataOperations: AnyBulkWriteOperation[] = [];
-        let updateStatusOperations: AnyBulkWriteOperation[] = [];
+        const bulkWriteOptions: BulkWriteOptions = { ordered: false, willRetryWrite: true, retryWrites: true };
+        const copyDataOperations = new CollectionBulkWriter(targetCollection, bulkWriteOptions);
+        const updateStatusOperations = new CollectionBulkWriter(sourceCollection, bulkWriteOptions);
 
         for await (const document of cursor) {
             const { _id, ...data } = document;
@@ -121,35 +121,16 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
             let eventtime = new Date(Date.parse(data[timeAlias]));
             eventtime = isNaN(eventtime.valueOf()) ? new Date() : eventtime;
 
-            updateOnly ||
-                copyDataOperations.push({
-                    updateOne: {
-                        filter: { _id },
-                        update: { $set: data },
-                        upsert: true,
-                    },
-                });
-            updateStatusOperations.push({
-                updateOne: {
-                    filter: { _id },
-                    update: { $set: { "__archive.eventtime": eventtime } },
-                },
-            });
+            copyDataOperations.push({ updateOne: { filter: { _id }, update: { $set: data }, upsert: true } }, updateOnly);
+            updateStatusOperations.push({ updateOne: { filter: { _id }, update: { $set: { "__archive.eventtime": eventtime } } } });
 
-            if (copyDataOperations.length >= BULK_WRITE_THRESHOLD || updateStatusOperations.length >= BULK_WRITE_THRESHOLD) {
-                updateOnly || (await this.executeBulkWrite(targetCollection, copyDataOperations));
-                await this.executeBulkWrite(sourceCollection, updateStatusOperations);
+            const isThresholdReached = updateStatusOperations.isThresholdReached() || copyDataOperations.isThresholdReached();
+            copyDataOperations.write(!updateOnly && isThresholdReached);
+            updateStatusOperations.write(isThresholdReached);
+        }
 
-                copyDataOperations = [];
-                updateStatusOperations = [];
-            }
-        }
-        if (!updateOnly && copyDataOperations.length > 0) {
-            await this.executeBulkWrite(targetCollection, copyDataOperations);
-        }
-        if (updateStatusOperations.length > 0) {
-            await this.executeBulkWrite(sourceCollection, updateStatusOperations);
-        }
+        await copyDataOperations.write(!updateOnly, 1);
+        await updateStatusOperations.write(true, 1);
 
         this.emitUpdateArchiveStatus(targetNamespace, { name }, archiveStatusOptions);
     }
@@ -165,20 +146,24 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
 
         this.emitUpdateArchiveStatus(targetNamespace, { name }, archiveStatusOptions);
 
-        const copyDataOperations: Map<string, AnyBulkWriteOperation[]> = new Map();
-        const updateStatusOperations: Map<string, AnyBulkWriteOperation[]> = new Map();
+        const sourceCollection = this.getSourceCollection(sourceNamespace);
+        const targetCollection = this.getTargetCollection(targetNamespace);
+
+        const bulkWriteOptions: BulkWriteOptions = { ordered: false, willRetryWrite: true, retryWrites: true };
+        const parentCopyDataOperations = new CollectionBulkWriter(targetCollection, bulkWriteOptions);
+        const parentUpdateStatusOperations = new CollectionBulkWriter(sourceCollection, bulkWriteOptions);
+
+        const copyDataOperations: Map<string, CollectionBulkWriter> = new Map();
+        const updateStatusOperations: Map<string, CollectionBulkWriter> = new Map();
 
         for (const { from, to, log: childArchiveStatusOptions } of childArchiveConfigs) {
             this.emitUpdateArchiveStatus(to, { name }, childArchiveStatusOptions);
 
-            copyDataOperations.set(getNamespaceString(to), []);
-            updateStatusOperations.set(getNamespaceString(from), []);
+            const fromCollection = this.getSourceCollection(from);
+            const toCollection = this.getTargetCollection(to);
+            copyDataOperations.set(getNamespaceString(from), new CollectionBulkWriter(toCollection, bulkWriteOptions));
+            updateStatusOperations.set(getNamespaceString(to), new CollectionBulkWriter(fromCollection, bulkWriteOptions));
         }
-
-        const sourceCollection = this.getSourceCollection(sourceNamespace);
-        const targetCollection = this.getTargetCollection(targetNamespace);
-        let parentCopyDataOperations: AnyBulkWriteOperation[] = [];
-        let parentUpdateStatusOperations: AnyBulkWriteOperation[] = [];
 
         const findOptions: FindOptions = { noCursorTimeout: true };
         const parentDataCursor = sourceCollection.find(parentFilter, findOptions);
@@ -200,7 +185,6 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                 const fromNamespace = getNamespaceString(from);
                 const toNamespace = getNamespaceString(to);
                 const fromCollection = this.getSourceCollection(from);
-                const toCollection = this.getTargetCollection(to);
 
                 const filter = { ...childFilter, [foreignField]: data[localField] };
                 const childDataCursor = fromCollection.find(filter, findOptions);
@@ -208,56 +192,24 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                 for await (const childDocument of childDataCursor) {
                     const { _id: _idChild, ...dataChild } = childDocument;
 
-                    const childCopyDataOperations = this.ensureMapGet(copyDataOperations, fromNamespace, []);
-                    const childUpdateStatusOperations = this.ensureMapGet(updateStatusOperations, toNamespace, []);
+                    const childCopyDataOperations = copyDataOperations.get(fromNamespace) ?? this.assertNonNull(`Failed to get CollectionBulkWriter for ${fromNamespace}`);
+                    const childUpdateStatusOperations = updateStatusOperations.get(toNamespace) ?? this.assertNonNull(`Failed to get CollectionBulkWriter for ${toNamespace}`);
 
-                    childUpdateOnly ||
-                        childCopyDataOperations.push({
-                            updateOne: {
-                                filter: { _id: _idChild },
-                                update: { $set: dataChild },
-                                upsert: true,
-                            },
-                        });
-                    childUpdateStatusOperations.push({
-                        updateOne: {
-                            filter: { _id: _idChild },
-                            update: { $set: { "__archive.eventtime": eventtime } },
-                        },
-                    });
+                    childCopyDataOperations.push({ updateOne: { filter: { _id: _idChild }, update: { $set: dataChild }, upsert: true } }, childUpdateOnly);
+                    childUpdateStatusOperations.push({ updateOne: { filter: { _id: _idChild }, update: { $set: { "__archive.eventtime": eventtime } } } });
 
-                    if (childCopyDataOperations.length >= BULK_WRITE_THRESHOLD || childUpdateStatusOperations.length >= BULK_WRITE_THRESHOLD) {
-                        childUpdateOnly || (await this.executeBulkWrite(toCollection, childCopyDataOperations));
-                        await this.executeBulkWrite(fromCollection, childUpdateStatusOperations);
-
-                        copyDataOperations.set(fromNamespace, []);
-                        updateStatusOperations.set(toNamespace, []);
-                    }
+                    const isChildThresholdReached = childUpdateStatusOperations.isThresholdReached() || childCopyDataOperations.isThresholdReached();
+                    await childCopyDataOperations.write(!childUpdateOnly && isChildThresholdReached);
+                    await childUpdateStatusOperations.write(isChildThresholdReached);
                 }
             }
 
-            updateOnly ||
-                parentCopyDataOperations.push({
-                    updateOne: {
-                        filter: { _id },
-                        update: { $set: data },
-                        upsert: true,
-                    },
-                });
-            parentUpdateStatusOperations.push({
-                updateOne: {
-                    filter: { _id },
-                    update: { $set: { "__archive.eventtime": eventtime } },
-                },
-            });
+            parentCopyDataOperations.push({ updateOne: { filter: { _id }, update: { $set: data }, upsert: true } }, updateOnly);
+            parentUpdateStatusOperations.push({ updateOne: { filter: { _id }, update: { $set: { "__archive.eventtime": eventtime } } } });
 
-            if (parentCopyDataOperations.length >= BULK_WRITE_THRESHOLD || parentUpdateStatusOperations.length >= BULK_WRITE_THRESHOLD) {
-                updateOnly || (await this.executeBulkWrite(targetCollection, parentCopyDataOperations));
-                await this.executeBulkWrite(sourceCollection, parentUpdateStatusOperations);
-
-                parentCopyDataOperations = [];
-                parentUpdateStatusOperations = [];
-            }
+            const isParentThresholdReached = parentUpdateStatusOperations.isThresholdReached() || parentCopyDataOperations.isThresholdReached();
+            parentCopyDataOperations.write(!updateOnly && isParentThresholdReached);
+            parentUpdateStatusOperations.write(isParentThresholdReached);
         }
 
         for (const childArchiveConfig of childArchiveConfigs) {
@@ -268,71 +220,31 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                 log: childArchiveStatusOptions,
             } = childArchiveConfig;
 
-            const fromCollection = this.getSourceCollection(from);
-            const toCollection = this.getTargetCollection(to);
+            const childCopyDataOperations =
+                copyDataOperations.get(getNamespaceString(from)) ?? this.assertNonNull(`Failed to get CollectionBulkWriter for ${getNamespaceString(from)}`);
+            const childUpdateStatusOperations =
+                updateStatusOperations.get(getNamespaceString(to)) ?? this.assertNonNull(`Failed to get CollectionBulkWriter for ${getNamespaceString(to)}`);
 
-            const childCopyDataOperations = this.ensureMapGet(copyDataOperations, getNamespaceString(to), []);
-            const childUpdateStatusOperations = this.ensureMapGet(updateStatusOperations, getNamespaceString(from), []);
-
-            if (!childUpdateOnly && childCopyDataOperations.length > 0) {
-                await this.executeBulkWrite(toCollection, childCopyDataOperations);
-            }
-            if (childUpdateStatusOperations.length > 0) {
-                await this.executeBulkWrite(fromCollection, childUpdateStatusOperations);
-            }
+            await childCopyDataOperations.write(!childUpdateOnly, 1);
+            await childUpdateStatusOperations.write(true, 1);
 
             this.emitUpdateArchiveStatus(to, { name }, childArchiveStatusOptions);
         }
 
-        if (!updateOnly && parentCopyDataOperations.length > 0) {
-            await this.executeBulkWrite(targetCollection, parentCopyDataOperations);
-        }
-        if (parentUpdateStatusOperations.length > 0) {
-            await this.executeBulkWrite(sourceCollection, parentUpdateStatusOperations);
-        }
+        await parentCopyDataOperations.write(!updateOnly, 1);
+        await parentUpdateStatusOperations.write(true, 1);
 
         this.emitUpdateArchiveStatus(targetNamespace, { name }, archiveStatusOptions);
     }
 
-    private ensureMapGet<K, V>(mapObject: Map<K, V>, key: K, defaultValue: V) {
-        const returnValue = mapObject.get(key);
-
-        if (returnValue) {
-            return returnValue;
-        } else {
-            mapObject.set(key, defaultValue);
-            return defaultValue;
-        }
+    private assertNonNull(errorMessage: string): never {
+        throw new TypeError(errorMessage);
     }
 
     private emitUpdateArchiveStatus(targetNamespace: ChangeStreamNameSpace, filter: Document, archiveStatusOptions: ArchiveStatusConfig | undefined): void {
         if (archiveStatusOptions) {
             this.emit("UPDATE_ARCHIVE_STATUS", targetNamespace, filter, archiveStatusOptions);
         }
-    }
-
-    private async executeBulkWrite(collection: Collection, bulkWriteOperations: AnyBulkWriteOperation[]) {
-        try {
-            const bulkWriteOptions: BulkWriteOptions = { ordered: false, willRetryWrite: true, retryWrites: true };
-            const bulkWriteResult = await collection.bulkWrite(bulkWriteOperations, bulkWriteOptions);
-            const { ok, matchedCount, upsertedCount, modifiedCount } = bulkWriteResult;
-            logger.logDebug({ ok, matchedCount, upsertedCount, modifiedCount }, { title: `${this.className}.bulkWrite`, subject: collection.namespace });
-        } catch (error: unknown) {
-            this.handleError(error);
-        }
-    }
-
-    private handleError(error: unknown): never {
-        logger.logError(this.className, error);
-
-        if (error instanceof MongoServerError) {
-            return this.handleMongoServerError(error);
-        }
-        throw error;
-    }
-
-    private handleMongoServerError(error: MongoServerError): never {
-        throw error;
     }
 
     subscribe(emitter: ArchiveProcessor): boolean {
@@ -342,8 +254,8 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
         }
 
         this.emitters.add(emitter);
-        emitter.addListener<"COPY_SINGLE">("COPY_SINGLE", this.copySingle);
-        emitter.addListener<"COPY_MULTIPLE">("COPY_MULTIPLE", this.copyMultiple);
+        emitter.addListener("COPY_SINGLE", this.copySingle);
+        emitter.addListener("COPY_MULTIPLE", this.copyMultiple);
         return true;
     }
 
@@ -353,8 +265,8 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
             return false;
         }
 
-        emitter.removeListener<"COPY_SINGLE">("COPY_SINGLE", this.copySingle);
-        emitter.removeListener<"COPY_MULTIPLE">("COPY_MULTIPLE", this.copyMultiple);
+        emitter.removeListener("COPY_SINGLE", this.copySingle);
+        emitter.removeListener("COPY_MULTIPLE", this.copyMultiple);
         this.emitters.delete(emitter);
         return true;
     }
