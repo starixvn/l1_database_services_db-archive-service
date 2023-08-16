@@ -6,6 +6,7 @@ import { CopyMultipleCollectionsDataOptions, CopySingleCollectionDataOptions } f
 import { getNamespaceString } from "../utils/mongodb-helpers";
 import { ArchiveProcessor } from "./archive-processor";
 import { CollectionBulkWriter } from "./collection-bulk-writer";
+import { MapAssert } from "./map-assert";
 
 type DataArchiverEvents = {
     UPDATE_ARCHIVE_STATUS: (...args: [ChangeStreamNameSpace, Document, ArchiveStatusConfig]) => MaybePromise<void>;
@@ -153,8 +154,8 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
         const parentCopyDataOperations = new CollectionBulkWriter(targetCollection, bulkWriteOptions);
         const parentUpdateStatusOperations = new CollectionBulkWriter(sourceCollection, bulkWriteOptions);
 
-        const copyDataOperations: Map<string, CollectionBulkWriter> = new Map();
-        const updateStatusOperations: Map<string, CollectionBulkWriter> = new Map();
+        const copyDataOperations: MapAssert<string, CollectionBulkWriter> = new MapAssert();
+        const updateStatusOperations: MapAssert<string, CollectionBulkWriter> = new MapAssert();
 
         for (const { from, to, log: childArchiveStatusOptions } of childArchiveConfigs) {
             this.emitUpdateArchiveStatus(to, { name }, childArchiveStatusOptions);
@@ -192,8 +193,8 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                 for await (const childDocument of childDataCursor) {
                     const { _id: _idChild, ...dataChild } = childDocument;
 
-                    const childCopyDataOperations = copyDataOperations.get(fromNamespace) ?? this.assertNonNull(`Failed to get CollectionBulkWriter for ${fromNamespace}`);
-                    const childUpdateStatusOperations = updateStatusOperations.get(toNamespace) ?? this.assertNonNull(`Failed to get CollectionBulkWriter for ${toNamespace}`);
+                    const childCopyDataOperations = copyDataOperations.get(fromNamespace, `Failed to get CollectionBulkWriter for ${fromNamespace}`);
+                    const childUpdateStatusOperations = updateStatusOperations.get(toNamespace, `Failed to get CollectionBulkWriter for ${toNamespace}`);
 
                     childCopyDataOperations.push({ updateOne: { filter: { _id: _idChild }, update: { $set: dataChild }, upsert: true } }, childUpdateOnly);
                     childUpdateStatusOperations.push({ updateOne: { filter: { _id: _idChild }, update: { $set: { "__archive.eventtime": eventtime } } } });
@@ -220,10 +221,8 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
                 log: childArchiveStatusOptions,
             } = childArchiveConfig;
 
-            const childCopyDataOperations =
-                copyDataOperations.get(getNamespaceString(from)) ?? this.assertNonNull(`Failed to get CollectionBulkWriter for ${getNamespaceString(from)}`);
-            const childUpdateStatusOperations =
-                updateStatusOperations.get(getNamespaceString(to)) ?? this.assertNonNull(`Failed to get CollectionBulkWriter for ${getNamespaceString(to)}`);
+            const childCopyDataOperations = copyDataOperations.get(getNamespaceString(from), `Failed to get CollectionBulkWriter for ${getNamespaceString(from)}`);
+            const childUpdateStatusOperations = updateStatusOperations.get(getNamespaceString(to), `Failed to get CollectionBulkWriter for ${getNamespaceString(to)}`);
 
             await childCopyDataOperations.write(!childUpdateOnly, 1);
             await childUpdateStatusOperations.write(true, 1);
@@ -235,10 +234,6 @@ export class DataArchiver extends TypedEventEmitter<DataArchiverEvents> {
         await parentUpdateStatusOperations.write(true, 1);
 
         this.emitUpdateArchiveStatus(targetNamespace, { name }, archiveStatusOptions);
-    }
-
-    private assertNonNull(errorMessage: string): never {
-        throw new TypeError(errorMessage);
     }
 
     private emitUpdateArchiveStatus(targetNamespace: ChangeStreamNameSpace, filter: Document, archiveStatusOptions: ArchiveStatusConfig | undefined): void {
