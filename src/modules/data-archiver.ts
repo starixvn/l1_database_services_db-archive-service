@@ -3,7 +3,7 @@ import { BulkWriteOptions, ChangeStreamNameSpace, Document, FindOptions, MongoCl
 import { logger } from "../loggers";
 import { ArchiveStatusConfig } from "../types/archive-config";
 import { CopyMultipleCollectionsDataOptions, CopySingleCollectionDataOptions } from "../types/archive-options";
-import { getNamespaceString } from "../utils/mongodb-helpers";
+import { getNamespaceString } from "../utils/mongodb-utils";
 import { ensureTime } from "../utils/time-utils";
 import { ArchiveProcessor } from "./archive-processor";
 import { CollectionBulkWriter } from "./collection-bulk-writer";

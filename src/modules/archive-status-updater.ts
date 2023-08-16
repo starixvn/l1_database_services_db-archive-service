@@ -2,7 +2,7 @@ import { stringify } from "@ldb/utils";
 import { ChangeStreamNameSpace, Collection, Document, FindOptions, MongoClient, UpdateOptions } from "mongodb";
 import { logger } from "../loggers";
 import { ArchiveStatusConfig } from "../types/archive-config";
-import { getNamespaceString } from "../utils/mongodb-helpers";
+import { getNamespaceString } from "../utils/mongodb-utils";
 import { DataArchiver } from "./data-archiver";
 
 /** Listen for signal from `DataArchiver` to update latest archive status */
