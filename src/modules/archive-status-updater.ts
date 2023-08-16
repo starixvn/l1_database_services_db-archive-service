@@ -2,6 +2,7 @@ import { stringify } from "@ldb/utils";
 import { ChangeStreamNameSpace, Collection, Document, FindOptions, MongoClient, UpdateOptions } from "mongodb";
 import { logger } from "../loggers";
 import { ArchiveStatusConfig } from "../types/archive-config";
+import { getNamespaceString } from "../utils/mongodb-helpers";
 import { DataArchiver } from "./data-archiver";
 
 /** Listen for signal from `DataArchiver` to update latest archive status */
@@ -39,7 +40,7 @@ export class ArchiveStatusUpdater {
 
         const { modifiedCount, upsertedCount } = updateArchiveStatusResult;
         if (modifiedCount + upsertedCount > 0) {
-            logger.logDebug({ ns: targetNamespace, archiveStatus: archiveStatusValue });
+            logger.logDebug("", { title: this.className, subject: `${getNamespaceString(targetNamespace)} => ${archiveStatusValue}` });
         }
     }
 
