@@ -1,7 +1,7 @@
-import { jest } from "@jest/globals";
+import { afterEach, jest } from "@jest/globals";
 import { MapAssert } from "../../../src/modules/map-assert";
 
-afterAll(() => {
+afterEach(() => {
     jest.clearAllMocks();
 });
 
@@ -44,7 +44,7 @@ describe("[class MapAssert]", () => {
         const testCases = ["nonExistKeyNum", "nonExistKeyString", "nonExistKeyBool", "nonExistKeyObject", "keynum", "keystring", "keybool", "keyobject"];
         for (const [key] of testCases) {
             expect(() => mapAssert.get(key)).toThrow(TypeError);
-            expect(() => mapAssert.get(key)).toThrow( `Failed to get value of ${key}`);
+            expect(() => mapAssert.get(key)).toThrow(`Failed to get value of ${key}`);
 
             expect(() => mapAssert.get(key, key)).toThrow(TypeError);
             expect(() => mapAssert.get(key, key)).toThrow(key);
