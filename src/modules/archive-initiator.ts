@@ -59,6 +59,7 @@ export class ArchiveInitiator extends TypedEventEmitter<ArchiveInitiatorEvents> 
 
         return { gameConfigs, from, to, alias, filter, config, childs, ...restConfigs };
     }
+
     protected static parseChildArchiveConfigs(rawChilds: SchemaChildArchiveConfig[], gameConfigs: GameConfigInfo): ChildArchiveConfig[] {
         const { name } = gameConfigs;
 

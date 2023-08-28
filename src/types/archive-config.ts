@@ -1,6 +1,6 @@
 import { ChangeStreamNameSpace, Document } from "mongodb";
 
-export type GameConfigInfo = { gameId?: number; name: string };
+export type GameConfigInfo = { type?: string; gameId?: number; name: string };
 
 export type SchemaNamespacePostfix = Record<"db" | "postfix", string>;
 
@@ -37,7 +37,7 @@ export type SchemaArchiveConfig = {
     alias?: AliasConfig;
     filter?: string;
     config?: SchemaArchiveConfigDetail;
-    childs: SchemaChildArchiveConfig[];
+    childs?: SchemaChildArchiveConfig[];
     log?: ArchiveStatusConfig;
 };
 
