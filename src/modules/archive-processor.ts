@@ -1,5 +1,5 @@
 import { MaybePromise, TypedEventEmitter } from "@ldb/types";
-import { ChangeStreamNameSpace, Document, MongoClient } from "mongodb";
+import { ChangeStreamNameSpace, Document } from "mongodb";
 import { logger } from "../loggers";
 import { ArchiveConfig, ArchiveStatusConfig } from "../types/archive-config";
 import { CopyMultipleCollectionsDataOptions, CopySingleCollectionDataOptions } from "../types/archive-options";
@@ -17,7 +17,7 @@ type CopyDataEvents = {
 export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
     private readonly emitters: Set<ArchiveInitiator> = new Set();
 
-    constructor(private readonly sourceMongoClient: MongoClient, private readonly targetMongoClient: MongoClient) {
+    constructor() {
         super();
         this.selfBound();
     }
@@ -68,12 +68,6 @@ export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
             childs: childArchiveConfigs,
             log,
         } = archiveConfig;
-
-        if (!childArchiveConfigs.length) {
-            const error = new TypeError("Childs config must exist in this process!");
-            logger.logError(`${this.className}.processDocumentArchive`, error, { gameConfigs });
-            return;
-        }
 
         if (!localField) {
             const error = new TypeError("[localField] config must exist in this process!");
