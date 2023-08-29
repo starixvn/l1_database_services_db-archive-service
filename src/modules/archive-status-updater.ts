@@ -13,7 +13,7 @@ export class ArchiveStatusUpdater {
         this.selfBound();
     }
 
-    private get className() {
+    get className() {
         return "ArchiveStatusUpdater";
     }
 
@@ -21,7 +21,7 @@ export class ArchiveStatusUpdater {
         this.updateArchiveStatus = this.updateArchiveStatus.bind(this);
     }
 
-    async updateArchiveStatus(targetNamespace: ChangeStreamNameSpace, filter: Document, archiveStatusConfig: ArchiveStatusConfig) {
+    private async updateArchiveStatus(targetNamespace: ChangeStreamNameSpace, filter: Document, archiveStatusConfig: ArchiveStatusConfig) {
         const { db, coll } = targetNamespace;
         const targetCollection = this.targetMongoClient.db(db).collection(coll);
 
