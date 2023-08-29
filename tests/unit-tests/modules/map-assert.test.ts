@@ -1,4 +1,4 @@
-import { afterEach, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import { MapAssert } from "../../../src/modules/map-assert";
 
 afterEach(() => {
