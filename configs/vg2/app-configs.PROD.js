@@ -2,7 +2,7 @@ import { SERVICE_VERSION } from "./service-version";
 
 const sourceDb = {
     credential: "lmn_archive:e%7BhLfhDx%3F~%2B%3E8p86%24)%3D%26qeY1J%7Bg*spJ*",
-    server: "10.99.99.54:37101,10.99.99.53:37102",
+    server: "10.99.99.53:37101,10.99.99.54:37102",
     replSet: "L2_SabaMain",
 };
 const targetDb = {
