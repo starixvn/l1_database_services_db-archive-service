@@ -1,27 +1,79 @@
-import { MongoClient } from "mongodb";
-import { database, eventConfigs, hostingPort } from "./app-configs";
-import { ContainerRegistry } from "./container-registry";
-import { HealthCheckServer } from "./healthcheck-server";
-import { logger } from "./loggers";
-import { Monitor } from "./monitor";
-import { namespaces } from "./namespaces";
-import { SERVICE_VERSION } from "./service-version";
+import type { BaseLogger } from "@ldb/base-logger";
+import type { Scheduler } from "@ldb/scheduler";
+import { name, version } from "./metadata.js";
+import type { ArchiveInitiator } from "./modules/archive-initiator.js";
+import { ArchiveProcessor } from "./modules/archive-processor.js";
+import { ArchiveStatusUpdater } from "./modules/archive-status-updater.js";
+import { MultipleArchiver } from "./modules/multiple-archiver.js";
+import { SingleArchiver } from "./modules/single-archiver.js";
 
-(async () => {
-    const server = new HealthCheckServer(hostingPort);
-    if (!server.server.listening) {
-        logger.logError("HealthCheckServer", "HealthCheckServer is unhealthy", { hostingPort });
+let exiting = false;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export class App {
+    constructor(
+        private readonly scheduler: Scheduler,
+        private readonly archiveInitiator: ArchiveInitiator,
+        private readonly archiveProcessor: ArchiveProcessor,
+        private readonly singleArchiver: SingleArchiver,
+        private readonly multipleArchiver: MultipleArchiver,
+        private readonly archiveStatusUpdater: ArchiveStatusUpdater,
+        private readonly logger: BaseLogger
+    ) {
+        this.selfBound();
+        this.handleExceptions();
     }
 
-    const sourceMongoClient = new MongoClient(database.sourceUrl);
-    const archiveMongoClient = new MongoClient(database.archiveUrl);
-    const container = new ContainerRegistry()
-        .register(sourceMongoClient, archiveMongoClient)
-        .registerScheduler(eventConfigs)
-        .registerNamespaces(namespaces);
+    get className() {
+        return this.constructor.name;
+    }
 
-    const monitor: Monitor = container.resolve("monitor");
-    monitor.run();
+    private selfBound() {
+        this.handleUncaughtException = this.handleUncaughtException.bind(this);
+        this.handleUnhandledRejection = this.handleUnhandledRejection.bind(this);
+    }
 
-    logger.logInfo("", `Data Archive Service v${SERVICE_VERSION} has been started!`, false);
-})();
+    private handleExceptions() {
+        process.addListener("uncaughtException", this.handleUncaughtException);
+        process.addListener("unhandledRejection", this.handleUnhandledRejection);
+    }
+
+    private async handleUncaughtException(error: Error, origin: NodeJS.UncaughtExceptionOrigin) {
+        if (exiting) {
+            await wait(2000);
+        }
+
+        exiting = true;
+        this.logger.logFatal({ title: name, message: error }, { tags: { event: "uncaughtException" }, extra: { error, origin } });
+
+        await wait(1000);
+        process.exit(10);
+    }
+
+    private async handleUnhandledRejection(reason: unknown, promise: Promise<unknown>) {
+        if (exiting) {
+            await wait(2000);
+        }
+
+        exiting = true;
+        this.logger.logFatal({ title: name, message: reason }, { tags: { event: "unhandledRejection" }, extra: { reason, promise } });
+
+        await wait(1000);
+        process.exit(20);
+    }
+
+    initiate() {
+        this.archiveStatusUpdater.subscribe(this.singleArchiver);
+        this.archiveStatusUpdater.subscribe(this.multipleArchiver);
+
+        this.singleArchiver.subscribe(this.archiveProcessor);
+        this.multipleArchiver.subscribe(this.archiveProcessor);
+
+        this.archiveProcessor.subscribe(this.archiveInitiator);
+
+        this.archiveInitiator.subscribe(this.scheduler);
+
+        this.logger.logWarning({ title: `${name}@${version}`, message: "App has been started." });
+    }
+}

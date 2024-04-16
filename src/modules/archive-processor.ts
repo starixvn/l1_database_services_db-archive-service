@@ -1,29 +1,15 @@
-import { MaybePromise, TypedEventEmitter } from "@ldb/types";
-import { ChangeStreamNameSpace, Document } from "mongodb";
-import { logger } from "../loggers";
-import { ArchiveConfig, ArchiveStatusConfig } from "../types/archive-config";
-import { CopyMultipleCollectionsDataOptions, CopySingleCollectionDataOptions } from "../types/archive-options";
-import { ArchiveInitiator } from "./archive-initiator";
+import type { BaseLogger } from "@ldb/base-logger";
+import type { ArchiveConfig } from "../types/archive-config.js";
+import type { ArchiveOptions, CopyDataOptions, CopyMode } from "../types/archive-options.js";
+import type { ArchiveInitiator, InitiatorEvents } from "./archive-initiator.js";
+import { Dispatcher } from "./dispatcher.js";
 
-type CopyDataEvents = {
-    COPY_SINGLE: (
-        ...args: [number, ChangeStreamNameSpace, ChangeStreamNameSpace, Document, CopySingleCollectionDataOptions, ArchiveStatusConfig | undefined]
-    ) => MaybePromise<void>;
-    COPY_MULTIPLE: (
-        ...args: [number, ChangeStreamNameSpace, ChangeStreamNameSpace, Document, CopyMultipleCollectionsDataOptions, ArchiveStatusConfig | undefined]
-    ) => MaybePromise<void>;
-};
+export type ProcessorEvents<T extends CopyMode> = Record<T, (c: ArchiveOptions<T>) => Promise<void>>;
 
-export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
-    private readonly emitters: Set<ArchiveInitiator> = new Set();
-
-    constructor() {
-        super();
+export class ArchiveProcessor extends Dispatcher<ProcessorEvents<CopyMode>, keyof InitiatorEvents, InitiatorEvents, ArchiveInitiator> {
+    constructor(logger: BaseLogger) {
+        super(logger);
         this.selfBound();
-    }
-
-    get className() {
-        return "ArchiveProcessor";
     }
 
     private selfBound() {
@@ -31,75 +17,32 @@ export class ArchiveProcessor extends TypedEventEmitter<CopyDataEvents> {
     }
 
     private async processArchive(archiveConfig: ArchiveConfig) {
-        const { childs } = archiveConfig;
-        if (!childs.length) {
-            this.processSingleCollectionArchive(archiveConfig);
-        } else {
-            await this.processMultipleCollectionsArchive(archiveConfig);
-        }
-    }
+        const { id, gameConfigs, from, to, alias, filter, config, log, childs } = archiveConfig;
+        const { name } = gameConfigs;
+        const { time: timeAlias } = alias;
+        const { localField, updateOnly } = config;
 
-    private processSingleCollectionArchive(archiveConfig: ArchiveConfig) {
-        const {
-            id,
-            gameConfigs: { name },
-            from,
-            to,
-            alias: { time: timeAlias },
-            filter,
-            config: { updateOnly },
-            log,
-        } = archiveConfig;
-
-        const copyDataOptions: CopySingleCollectionDataOptions = { name, updateOnly, timeAlias };
-
-        this.emit("COPY_SINGLE", id, from, to, filter, copyDataOptions, log);
-    }
-
-    private async processMultipleCollectionsArchive(archiveConfig: ArchiveConfig) {
-        const {
-            id,
-            gameConfigs,
-            from,
-            to,
-            alias: { time: timeAlias },
-            filter,
-            config: { localField, updateOnly },
-            childs: childArchiveConfigs,
-            log,
-        } = archiveConfig;
-
-        if (!localField) {
-            const error = new TypeError("[localField] config must exist in this process!");
-            logger.logError(`${this.className}.processDocumentArchive`, error, { gameConfigs });
+        if (childs.length === 0) {
+            const dataOptions: CopyDataOptions<"SINGLE"> = { name, updateOnly, timeAlias };
+            this.emit<"SINGLE">("SINGLE", { id, from, to, filter, dataOptions, log });
             return;
         }
 
-        const { name } = gameConfigs;
-        const copyDataOptions: CopyMultipleCollectionsDataOptions = { name, updateOnly, timeAlias, localField, childArchiveConfigs };
-
-        this.emit("COPY_MULTIPLE", id, from, to, filter, copyDataOptions, log);
-    }
-
-    subscribe(emitter: ArchiveInitiator): boolean {
-        if (this.emitters.has(emitter)) {
-            logger.logWarning(`${this.className}.subscribe`, "Already subscribed");
-            return false;
+        if (!localField) {
+            const message = new TypeError("[localField] is undefined");
+            this.logger.logError({ title: `${this.className}.processArchive`, message }, { extra: { id, gameConfigs, localField } });
+            return;
         }
 
-        this.emitters.add(emitter);
-        emitter.addListener("ARCHIVE", this.processArchive);
-        return true;
+        const dataOptions: CopyDataOptions<"MULTIPLE"> = { name, updateOnly, timeAlias, localField, childs };
+        this.emit<"MULTIPLE">("MULTIPLE", { id, from, to, filter, dataOptions, log });
     }
 
-    unsubscribe(emitter: ArchiveInitiator): boolean {
-        if (!this.emitters.has(emitter)) {
-            logger.logWarning(`${this.className}.unsubscribe`, "Currently unsubscribed");
-            return false;
-        }
+    subscribe(publisher: ArchiveInitiator) {
+        return super.subscribe(publisher, "ARCHIVE", this.processArchive);
+    }
 
-        emitter.removeListener("ARCHIVE", this.processArchive);
-        this.emitters.delete(emitter);
-        return true;
+    unsubscribe(publisher: ArchiveInitiator) {
+        return super.unsubscribe(publisher, "ARCHIVE", this.processArchive);
     }
 }
