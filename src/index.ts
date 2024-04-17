@@ -10,6 +10,7 @@ const init = async () => {
 
     const container = new Container().register().registerDatabases(sourceMongo, targetMongo);
     const app: App = container.resolve("app");
+    container.resolve("healthcheckServer");
 
     app.initiate();
 };

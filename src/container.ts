@@ -5,8 +5,19 @@ import { SkynexLogger } from "@ldb/skynex-logger";
 import { TerminalLogger } from "@ldb/terminal-logger";
 import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode, ResolveOptions } from "awilix";
 import type { MongoClient } from "mongodb";
-import { environment, eventConfigs, sentryNodeOptions, sentryOptions, sentrySeverityLevel, skynexOptions, skynexSeverityLevel, terminalSeverityLevel } from "./app-configs.js";
+import {
+    environment,
+    eventConfigs,
+    healthcheckPort,
+    sentryNodeOptions,
+    sentryOptions,
+    sentrySeverityLevel,
+    skynexOptions,
+    skynexSeverityLevel,
+    terminalSeverityLevel,
+} from "./app-configs.js";
 import { App } from "./app.js";
+import { HealthcheckServer } from "./healthcheck/server.js";
 import { ArchiveInitiator } from "./modules/archive-initiator.js";
 import { ArchiveProcessor } from "./modules/archive-processor.js";
 import { ArchiveStatusUpdater } from "./modules/archive-status-updater.js";
@@ -68,6 +79,13 @@ export class Container {
             archiveStatusUpdater: asClass(ArchiveStatusUpdater).singleton(),
         });
         return this;
+    }
+
+    private registerHealthcheck() {
+        this.container.register({
+            healthcheckServer: asClass(HealthcheckServer).singleton(),
+            healthcheckPort: asValue(healthcheckPort),
+        });
     }
 
     registerDatabases(sourceMongo: MongoClient, targetMongo: MongoClient) {

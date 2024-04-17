@@ -2,7 +2,7 @@ import type { BaseLogger } from "@ldb/base-logger";
 import http, { type IncomingMessage, type Server, type ServerResponse } from "http";
 import { name, version } from "../metadata.js";
 
-export class HealthCheckServer {
+export class HealthcheckServer {
     private readonly server: Server;
 
     get className() {
@@ -24,7 +24,7 @@ export class HealthCheckServer {
     }
 
     private handleListening() {
-        this.logger.logInfo({ title: this.className, message: `Healthcheck server started on port ${this.healthcheckPort}` })
+        this.logger.logInfo({ title: this.className, message: `Healthcheck server started on port ${this.healthcheckPort}` });
     }
 
     private handleRequest(req: IncomingMessage, res: ServerResponse) {
