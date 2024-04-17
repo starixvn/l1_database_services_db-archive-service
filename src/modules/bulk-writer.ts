@@ -4,7 +4,7 @@ type UpdateOneOperation = { updateOne: UpdateOneModel };
 
 export const BULK_WRITE_OPTIONS = { ordered: false, willRetryWrite: true, retryWrites: true } as const satisfies BulkWriteOptions;
 
-export const BULK_WRITE_THRESHOLD = 10_000 as const;
+export const BULK_WRITE_THRESHOLD = 1_000 as const;
 
 export class BulkWriter {
     private readonly colls: Map<string, Collection> = new Map();
