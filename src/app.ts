@@ -40,26 +40,26 @@ export class App {
     }
 
     private async handleUncaughtException(error: Error, origin: NodeJS.UncaughtExceptionOrigin) {
-        if (exiting) {
-            await wait(2000);
+        while (exiting) {
+            await wait(1_000);
         }
 
         exiting = true;
         this.logger.logFatal({ title: name, message: error }, { tags: { event: "uncaughtException" }, extra: { error, origin } });
 
-        await wait(1000);
+        await wait(5_000);
         process.exit(10);
     }
 
     private async handleUnhandledRejection(reason: unknown, promise: Promise<unknown>) {
-        if (exiting) {
-            await wait(2000);
+        while (exiting) {
+            await wait(5_000);
         }
 
         exiting = true;
         this.logger.logFatal({ title: name, message: reason }, { tags: { event: "unhandledRejection" }, extra: { reason, promise } });
 
-        await wait(1000);
+        await wait(5_000);
         process.exit(20);
     }
 
