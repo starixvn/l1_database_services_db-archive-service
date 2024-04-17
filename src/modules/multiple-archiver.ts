@@ -35,7 +35,7 @@ export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
             this.initUpdateArchiveStatus(toChild, { name }, logChild);
 
             const childFromColl = this.getSourceCollection(fromChild);
-            const childToColl = this.getSourceCollection(toChild);
+            const childToColl = this.getTargetCollection(toChild);
             bulkWriter.add(childFromColl, childToColl);
         }
 
@@ -55,7 +55,7 @@ export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
                 const { foreignField, updateOnly: updateOnlyChild } = configChild;
 
                 const childFromColl = this.getSourceCollection(fromChild);
-                const childToColl = this.getSourceCollection(toChild);
+                const childToColl = this.getTargetCollection(toChild);
 
                 const filter = { ...filterChild, [foreignField]: parentDoc[localField] };
                 const childDataCursor = childFromColl.find(filter, FIND_OPTIONS);
