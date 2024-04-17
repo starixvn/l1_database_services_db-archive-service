@@ -33,7 +33,7 @@ export class Container {
     }
 
     register() {
-        this.registerLoggers().registerScheduler().registerClasses();
+        this.registerLoggers().registerScheduler().registerClasses().registerHealthcheck();
         return this;
     }
 
@@ -86,6 +86,7 @@ export class Container {
             healthcheckServer: asClass(HealthcheckServer).singleton(),
             healthcheckPort: asValue(healthcheckPort),
         });
+        return this;
     }
 
     registerDatabases(sourceMongo: MongoClient, targetMongo: MongoClient) {
