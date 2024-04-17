@@ -20,7 +20,8 @@ export class SingleArchiver extends DataArchiver<"SINGLE"> {
         const toCollection = this.getTargetCollection(to);
 
         this.initUpdateArchiveStatus(to, { name }, log);
-        const bulkWriter = new BulkWriter(fromCollection, toCollection);
+        const bulkWriter = new BulkWriter(this.logger);
+        bulkWriter.add(fromCollection, toCollection);
 
         const fromDataCursor = fromCollection.find(filter, FIND_OPTIONS);
 

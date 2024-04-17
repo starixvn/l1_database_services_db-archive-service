@@ -26,7 +26,8 @@ export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
 
         const parentFromColl = this.getSourceCollection(from);
         const parentToColl = this.getTargetCollection(to);
-        const bulkWriter = new BulkWriter(parentFromColl, parentToColl);
+        const bulkWriter = new BulkWriter(this.logger);
+        bulkWriter.add(parentFromColl, parentToColl);
 
         for (const child of childs) {
             const { from: fromChild, to: toChild, log: logChild } = child;

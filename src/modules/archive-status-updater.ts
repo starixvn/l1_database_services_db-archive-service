@@ -36,9 +36,16 @@ export class ArchiveStatusUpdater extends Subsciber<keyof ArchiverEvents, Archiv
         }
 
         const { value: archiveStatusValue } = logValue;
-        const updateResult = await this.archiveStatusCollection.updateOne(filter, { $set: { [`lastArcId.${field}`]: archiveStatusValue } }, UPDATE_OPTIONS);
+        const { acknowledged, matchedCount, upsertedCount, modifiedCount } = await this.archiveStatusCollection.updateOne(
+            filter,
+            { $set: { [`lastArcId.${field}`]: archiveStatusValue } },
+            UPDATE_OPTIONS
+        );
 
-        this.logger.logDebug({ title: this.className, message: `${targetCollection.namespace} => ${archiveStatusValue}` }, { extra: { filter, field, updateResult } });
+        this.logger.logDebug(
+            { title: this.className, message: `${targetCollection.namespace} => ${archiveStatusValue}` },
+            { extra: { filter, field, updateResult: `(${acknowledged})  #-${matchedCount}  U-${upsertedCount}  M-${modifiedCount}` } }
+        );
     }
 
     subscribe(publisher: DataArchiver<CopyMode>) {

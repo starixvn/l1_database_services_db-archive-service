@@ -1,3 +1,4 @@
+import type { BaseLogger } from "@ldb/base-logger";
 import type { BulkWriteOptions, Collection, UpdateOneModel } from "mongodb";
 
 type UpdateOneOperation = { updateOne: UpdateOneModel };
@@ -10,9 +11,11 @@ export class BulkWriter {
     private readonly colls: Map<string, Collection> = new Map();
     private readonly bulks: Map<string, UpdateOneOperation[]> = new Map();
 
-    constructor(...collections: Collection[]) {
-        this.add(...collections);
+    get className() {
+        return this.constructor.name;
     }
+
+    constructor(private readonly logger: BaseLogger) {}
 
     add(...collections: Collection[]) {
         for (const collection of collections) {
@@ -50,7 +53,12 @@ export class BulkWriter {
                 continue;
             }
 
-            await colection.bulkWrite(bulk, BULK_WRITE_OPTIONS);
+            const { ok, matchedCount, insertedCount, modifiedCount, deletedCount, upsertedCount } = await colection.bulkWrite(bulk, BULK_WRITE_OPTIONS);
+            this.logger.logDebug({
+                title: this.className,
+                message: `[${namespace}](${ok})  #-${matchedCount}  I-${insertedCount}  U-${upsertedCount}  M-${modifiedCount}  D-${deletedCount}`,
+            });
+
             this.bulks.set(namespace, []);
         }
     }
