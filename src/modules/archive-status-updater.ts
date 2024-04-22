@@ -1,68 +1,58 @@
-import { stringify } from "@ldb/utils";
-import { ChangeStreamNameSpace, Collection, Document, FindOptions, MongoClient, UpdateOptions } from "mongodb";
-import { logger } from "../loggers";
-import { ArchiveStatusConfig } from "../types/archive-config";
-import { getNamespaceString } from "../utils/mongodb-utils";
-import { DataArchiver } from "./data-archiver";
+import type { BaseLogger } from "@ldb/base-logger";
+import type { ChangeStreamNameSpace, Collection, FindOptions, MongoClient, UpdateOptions } from "mongodb";
+import type { ArchiveStatusOptions, CopyMode } from "../types/archive-options.js";
+import type { ArchiverEvents, DataArchiver } from "./data-archiver.js";
+import { Subsciber } from "./subscriber.js";
 
-/** Listen for signal from `DataArchiver` to update latest archive status */
-export class ArchiveStatusUpdater {
-    private readonly emitters: Set<DataArchiver> = new Set();
+const UPDATE_OPTIONS = { upsert: true, willRetryWrite: true, retryWrites: true } as const satisfies UpdateOptions;
 
-    constructor(private readonly archiveStatusCollection: Collection, private readonly targetMongoClient: MongoClient) {
+export class ArchiveStatusUpdater extends Subsciber<keyof ArchiverEvents, ArchiverEvents, DataArchiver<CopyMode>> {
+    constructor(private readonly archiveStatusCollection: Collection, private readonly targetMongo: MongoClient, logger: BaseLogger) {
+        super(logger);
         this.selfBound();
-    }
-
-    get className() {
-        return "ArchiveStatusUpdater";
     }
 
     private selfBound() {
         this.updateArchiveStatus = this.updateArchiveStatus.bind(this);
     }
 
-    private async updateArchiveStatus(targetNamespace: ChangeStreamNameSpace, filter: Document, archiveStatusConfig: ArchiveStatusConfig) {
-        const { db, coll } = targetNamespace;
-        const targetCollection = this.targetMongoClient.db(db).collection(coll);
+    private getTargetCollection(namespace: ChangeStreamNameSpace) {
+        const { db, coll } = namespace;
+        return this.targetMongo.db(db).collection(coll);
+    }
 
-        const { field, value } = archiveStatusConfig;
+    private async updateArchiveStatus(archiveStatusOptions: ArchiveStatusOptions) {
+        const { target, filter, options } = archiveStatusOptions;
+        const { field, value } = options;
+
+        const targetCollection = this.getTargetCollection(target);
 
         const logValueFindOptions: FindOptions = { projection: { _id: 0, value: `$${value}` }, sort: { [value]: -1 } };
         const logValue = await targetCollection.findOne({}, logValueFindOptions);
 
         if (!logValue || !logValue.value) {
-            logger.logWarning(this.className, `Skip archive status update [${targetCollection.namespace}] = ${stringify(logValue)}`);
+            this.logger.logDebug({ title: this.className, message: `Skip archive status update on [${targetCollection.namespace}]` }, { extra: { logValue } });
             return;
         }
-        const archiveStatusValue = logValue.value;
-        const updateOptions: UpdateOptions = { upsert: true, willRetryWrite: true, retryWrites: true };
-        const updateArchiveStatusResult = await this.archiveStatusCollection.updateOne(filter, { $set: { [`lastArcId.${field}`]: archiveStatusValue } }, updateOptions);
 
-        const { modifiedCount, upsertedCount } = updateArchiveStatusResult;
-        if (modifiedCount + upsertedCount > 0) {
-            logger.logDebug("", { title: this.className, subject: `${getNamespaceString(targetNamespace)} => ${archiveStatusValue}` });
-        }
+        const { value: archiveStatusValue } = logValue;
+        const { acknowledged, matchedCount, upsertedCount, modifiedCount } = await this.archiveStatusCollection.updateOne(
+            filter,
+            { $set: { [`lastArcId.${field}`]: archiveStatusValue } },
+            UPDATE_OPTIONS
+        );
+
+        this.logger.logDebug(
+            { title: this.className, message: `${targetCollection.namespace} => ${archiveStatusValue}` },
+            { extra: { filter, field, updateResult: `(${acknowledged})  #-${matchedCount}  U-${upsertedCount}  M-${modifiedCount}` } }
+        );
     }
 
-    subscribe(emitter: DataArchiver): boolean {
-        if (this.emitters.has(emitter)) {
-            logger.logWarning(`${this.className}.subscribe`, "Already subscribed");
-            return false;
-        }
-
-        this.emitters.add(emitter);
-        emitter.addListener("UPDATE_ARCHIVE_STATUS", this.updateArchiveStatus);
-        return true;
+    subscribe(publisher: DataArchiver<CopyMode>) {
+        return super.subscribe(publisher, "UPDATE_ARCHIVE_STATUS", this.updateArchiveStatus);
     }
 
-    unsubscribe(emitter: DataArchiver): boolean {
-        if (!this.emitters.has(emitter)) {
-            logger.logWarning(`${this.className}.unsubscribe`, "Currently unsubscribed");
-            return false;
-        }
-
-        emitter.removeListener("UPDATE_ARCHIVE_STATUS", this.updateArchiveStatus);
-        this.emitters.delete(emitter);
-        return true;
+    unsubscribe(publisher: DataArchiver<CopyMode>) {
+        return super.unsubscribe(publisher, "UPDATE_ARCHIVE_STATUS", this.updateArchiveStatus);
     }
 }

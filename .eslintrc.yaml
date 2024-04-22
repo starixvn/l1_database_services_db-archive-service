@@ -4,10 +4,11 @@ extends:
     - "google"
     - "plugin:@typescript-eslint/eslint-recommended"
     - "plugin:@typescript-eslint/recommended"
-    - "plugin:security/recommended"
     - "prettier"
+ignorePatterns: ["**/lib/**", "configs/**"]
+parserOptions:
+    project: "tsconfig.json"
 rules:
     no-throw-literal: "error"
     require-jsdoc: "off"
     valid-jsdoc: "off"
-ignorePatterns: ["/lib/**"]

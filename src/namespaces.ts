@@ -1,6 +1,6 @@
-import { ChangeStreamNameSpace } from "mongodb";
+import type { ChangeStreamNameSpace } from "mongodb";
 
-export const namespaces: Record<string, ChangeStreamNameSpace> = {
+export const namespaces = {
     archiveConfigCollection: { db: "ops_configs", coll: "archive_configs" },
     archiveStatusCollection: { db: "minigame", coll: "archive_statuses" },
-};
+} as const satisfies Record<string, ChangeStreamNameSpace>;

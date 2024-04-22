@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { ensureTime } from "../../../src/utils/time-utils";
+import { ensureTime } from "../../../src/utils/time";
 
 afterAll(() => {
     jest.clearAllMocks();
