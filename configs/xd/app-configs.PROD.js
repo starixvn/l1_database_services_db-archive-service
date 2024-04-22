@@ -29,11 +29,11 @@ export const skynexOptions = {
 
 export const terminalSeverityLevel = "log";
 
-const srcCred = "lmn_archive:%6e%2a%40%63%27%4c%26%6c%53%40%7c%42%75%5e%46%54%28%29%71%40%75%3e%42%2a%4b%61%5e%3e%6%47%67";
+const srcCred = "lmn_archive:%6e%2a%40%63%27%4c%26%6c%53%40%7c%42%75%5e%46%54%28%29%71%40%75%3e%42%2a%4b%61%5e%3e%5c%36%47%67";
 const srcSrv = "10.99.99.53:39410,10.99.99.54:39410,10.99.99.188:39410,10.99.99.187:39410";
 const srcRepl = "SN-Main";
 
-const arcCred = "lmn_archive:%6e%2a%40%63%27%4c%26%6c%53%40%7c%42%75%5e%46%54%28%29%71%40%75%3e%42%2a%4b%61%5e%3e%6%47%67";
+const arcCred = "lmn_archive:%6e%2a%40%63%27%4c%26%6c%53%40%7c%42%75%5e%46%54%28%29%71%40%75%3e%42%2a%4b%61%5e%3e%5c%36%47%67";
 const arcSrv = "10.99.99.53:39415,10.99.99.54:39415,10.99.99.188:39415,10.99.99.187:39415";
 const arcRepl = "SN-Arc";
 
