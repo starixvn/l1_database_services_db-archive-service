@@ -5,7 +5,7 @@ export const healthcheckPort = 5000;
 
 export const sentrySeverityLevel = "warning";
 export const sentryNodeOptions = {
-    dsn: "http://098a0c6ad1d74e8eb39ec7df895e59e0@sentry.lumigame.com/76",
+    dsn: "http://7820c1cec9bc47f1b52a054861b55256@10.2.190.51:9009/295",
     environment,
     initialScope: {
         tags: { service: name },
