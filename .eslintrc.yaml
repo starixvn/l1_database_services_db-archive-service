@@ -5,6 +5,7 @@ extends:
     - "plugin:@typescript-eslint/eslint-recommended"
     - "plugin:@typescript-eslint/recommended"
     - "prettier"
+    - "plugin:security/recommended-legacy"
 ignorePatterns: ["**/lib/**", "configs/**", "tests/**"]
 parserOptions:
     project: "tsconfig.json"

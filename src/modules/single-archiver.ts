@@ -27,7 +27,7 @@ export class SingleArchiver extends DataArchiver<"SINGLE"> {
 
         for await (const document of fromDataCursor) {
             const { _id } = document;
-            const eventtime = ensureTime(document[timeAlias]);
+            const eventtime = ensureTime(document[`${timeAlias}`]);
 
             if (!updateOnly) {
                 bulkWriter.set(toCollection, { updateOne: { filter: { _id }, update: { $set: document }, upsert: true } });
