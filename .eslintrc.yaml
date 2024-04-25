@@ -5,7 +5,7 @@ extends:
     - "plugin:@typescript-eslint/eslint-recommended"
     - "plugin:@typescript-eslint/recommended"
     - "prettier"
-ignorePatterns: ["**/lib/**", "configs/**"]
+ignorePatterns: ["**/lib/**", "configs/**", "tests/**"]
 parserOptions:
     project: "tsconfig.json"
 rules:

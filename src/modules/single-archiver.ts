@@ -1,5 +1,5 @@
 import type { BaseLogger } from "@ldb/base-logger";
-import type { MongoClient } from "mongodb";
+import type { MongoClient } from "@ldb/mongo";
 import type { ArchiveOptions } from "../types/archive-options.js";
 import { ensureTime } from "../utils/time.js";
 import type { ArchiveProcessor } from "./archive-processor.js";

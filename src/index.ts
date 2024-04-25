@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { MongoClient } from "@ldb/mongo";
 import { database } from "./app-configs.js";
 import type { App } from "./app.js";
 import { Container } from "./container.js";

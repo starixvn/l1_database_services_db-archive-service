@@ -1,5 +1,4 @@
-import { EJSON } from "bson";
-import type { ChangeStreamNameSpace, Document } from "mongodb";
+import { EJSON, type ChangeStreamNameSpace, type Document } from "@ldb/mongo";
 import type {
     ArchiveConfig,
     ArchiveConfigDetail,

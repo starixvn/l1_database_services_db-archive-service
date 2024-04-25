@@ -1,5 +1,5 @@
 import type { BaseLogger } from "@ldb/base-logger";
-import type { ChangeStreamNameSpace, Document, FindOptions, MongoClient } from "mongodb";
+import type { ChangeStreamNameSpace, Document, FindOptions, MongoClient } from "@ldb/mongo";
 import type { ArchiveStatusConfig } from "../types/archive-config.js";
 import type { ArchiveOptions, ArchiveStatusOptions, CopyMode } from "../types/archive-options.js";
 import type { ArchiveProcessor, ProcessorEvents } from "./archive-processor.js";
@@ -60,6 +60,7 @@ export class DataArchiver<E extends CopyMode> extends Dispatcher<ArchiverEvents,
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected async executeCopy(options: ArchiveOptions<E>) {}
 
     protected initUpdateArchiveStatus(target: ChangeStreamNameSpace, filter: Document, options?: ArchiveStatusConfig) {

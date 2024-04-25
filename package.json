@@ -16,18 +16,16 @@
     ],
     "dependencies": {
         "@ldb/logger": "1.0.0",
+        "@ldb/mongo": "^6.5.0",
         "@ldb/scheduler": "^2.0.0",
         "@ldb/sentry-logger": "1.0.0",
         "@ldb/skynex-logger": "1.0.0",
         "@ldb/terminal-logger": "1.0.0",
         "@ldb/types": "^1.0.5",
-        "awilix": "^10.0.2",
-        "bson": "^6.6.0",
-        "mongodb": "^6.5.0",
-        "saslprep": "^1.0.3"
+        "awilix": "^10.0.2"
     },
     "devDependencies": {
-        "@commitlint/cli": "^19.2.2",
+        "@commitlint/cli": "^19.3.0",
         "@commitlint/config-conventional": "^19.2.2",
         "@jest/globals": "^29.7.0",
         "@ldb/base-logger": "1.0.0",
@@ -46,7 +44,7 @@
         "ts-jest": "^29.1.2",
         "ts-node": "^10.9.2",
         "typescript": "^5.4.5",
-        "typescript-eslint": "^7.7.0"
+        "typescript-eslint": "^7.7.1"
     },
     "jestSonar": {
         "reportPath": "reports",

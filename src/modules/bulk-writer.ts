@@ -1,5 +1,5 @@
 import type { BaseLogger } from "@ldb/base-logger";
-import type { BulkWriteOptions, Collection, UpdateOneModel } from "mongodb";
+import type { BulkWriteOptions, Collection, UpdateOneModel } from "@ldb/mongo";
 
 type UpdateOneOperation = { updateOne: UpdateOneModel };
 

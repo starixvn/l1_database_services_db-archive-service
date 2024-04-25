@@ -1,10 +1,10 @@
 import { Logger } from "@ldb/logger";
+import type { MongoClient } from "@ldb/mongo";
 import { Scheduler } from "@ldb/scheduler";
 import { SentryLogger } from "@ldb/sentry-logger";
 import { SkynexLogger } from "@ldb/skynex-logger";
 import { TerminalLogger } from "@ldb/terminal-logger";
 import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode, ResolveOptions } from "awilix";
-import type { MongoClient } from "mongodb";
 import {
     environment,
     eventConfigs,
