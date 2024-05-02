@@ -1,4 +1,4 @@
-import { ChangeStreamNameSpace, Document } from "mongodb";
+import { ChangeStreamNameSpace, Document } from "@ldb/mongo";
 import { ArchiveStatusConfig, ChildArchiveConfig } from "./archive-config";
 
 export type CopyMode = "SINGLE" | "MULTIPLE";
@@ -12,7 +12,7 @@ export type CopyDataOptions<T extends CopyMode> = {
     name: string;
     updateOnly: boolean;
     timeAlias: string;
-} & (T extends "MULTIPLE" ? MultipleCollectionOptions : {});
+} & (T extends "MULTIPLE" ? MultipleCollectionOptions : object);
 
 export type ArchiveOptions<T extends CopyMode> = {
     id: number;

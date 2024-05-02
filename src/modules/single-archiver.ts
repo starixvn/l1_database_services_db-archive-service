@@ -1,5 +1,5 @@
 import type { BaseLogger } from "@ldb/base-logger";
-import type { MongoClient } from "mongodb";
+import type { MongoClient } from "@ldb/mongo";
 import type { ArchiveOptions } from "../types/archive-options.js";
 import { ensureTime } from "../utils/time.js";
 import type { ArchiveProcessor } from "./archive-processor.js";
@@ -27,7 +27,7 @@ export class SingleArchiver extends DataArchiver<"SINGLE"> {
 
         for await (const document of fromDataCursor) {
             const { _id } = document;
-            const eventtime = ensureTime(document[timeAlias]);
+            const eventtime = ensureTime(document[`${timeAlias}`]);
 
             if (!updateOnly) {
                 bulkWriter.set(toCollection, { updateOne: { filter: { _id }, update: { $set: document }, upsert: true } });

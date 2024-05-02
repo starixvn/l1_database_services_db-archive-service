@@ -1,5 +1,5 @@
 import type { BaseLogger } from "@ldb/base-logger";
-import type { ChangeStreamNameSpace, Collection, FindOptions, MongoClient, UpdateOptions } from "mongodb";
+import type { ChangeStreamNameSpace, Collection, FindOptions, MongoClient, UpdateOptions } from "@ldb/mongo";
 import type { ArchiveStatusOptions, CopyMode } from "../types/archive-options.js";
 import type { ArchiverEvents, DataArchiver } from "./data-archiver.js";
 import { Subsciber } from "./subscriber.js";

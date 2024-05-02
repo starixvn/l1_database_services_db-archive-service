@@ -1,5 +1,5 @@
 import type { BaseLogger } from "@ldb/base-logger";
-import type { FindCursor, MongoClient } from "mongodb";
+import type { FindCursor, MongoClient } from "@ldb/mongo";
 import type { ArchiveOptions } from "../types/archive-options.js";
 import { ensureTime } from "../utils/time.js";
 import type { ArchiveProcessor } from "./archive-processor.js";
@@ -43,7 +43,7 @@ export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
 
         for await (const parentDoc of parentDataCursor) {
             const { _id } = parentDoc;
-            const eventtime = ensureTime(parentDoc[timeAlias]);
+            const eventtime = ensureTime(parentDoc[`${timeAlias}`]);
 
             if (!updateOnly) {
                 bulkWriter.set(parentToColl, { updateOne: { filter: { _id }, update: { $set: parentDoc }, upsert: true } });
@@ -57,7 +57,7 @@ export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
                 const childFromColl = this.getSourceCollection(fromChild);
                 const childToColl = this.getTargetCollection(toChild);
 
-                const filter = { ...filterChild, [foreignField]: parentDoc[localField] };
+                const filter = { ...filterChild, [foreignField]: parentDoc[`${localField}`] };
                 const childDataCursor = childFromColl.find(filter, FIND_OPTIONS);
 
                 for await (const childDoc of childDataCursor) {

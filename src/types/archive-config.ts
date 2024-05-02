@@ -1,4 +1,4 @@
-import type { ChangeStreamNameSpace, Document } from "mongodb";
+import type { ChangeStreamNameSpace, Document } from "@ldb/mongo";
 
 export type GameConfigInfo = { type?: string; gameId?: number; name: string };
 
