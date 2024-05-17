@@ -37,7 +37,7 @@ export class DataArchiver<E extends CopyMode> extends Dispatcher<ArchiverEvents,
         const fromCollection = this.getSourceCollection(from);
         const toCollection = this.getTargetCollection(to);
 
-        return `#${id} [${fromCollection.namespace}] => [${toCollection.namespace}]`;
+        return `#${id} [${fromCollection.namespace}] => [${toCollection.namespace}]` as const;
     }
 
     private async copyData(options: ArchiveOptions<E>) {
