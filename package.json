@@ -16,7 +16,7 @@
     ],
     "dependencies": {
         "@ldb/logger": "1.0.0",
-        "@ldb/mongo": "^6.6.1",
+        "@ldb/mongo": "^6.6.2",
         "@ldb/scheduler": "^2.0.0",
         "@ldb/sentry-logger": "1.0.0",
         "@ldb/skynex-logger": "1.0.0",

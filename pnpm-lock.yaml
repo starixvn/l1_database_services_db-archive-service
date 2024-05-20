@@ -12,8 +12,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       '@ldb/mongo':
-        specifier: ^6.6.1
-        version: 6.6.1
+        specifier: ^6.6.2
+        version: 6.6.2
       '@ldb/scheduler':
         specifier: ^2.0.0
         version: 2.0.0
@@ -483,8 +483,8 @@ packages:
   '@ldb/logger@1.0.0':
     resolution: {integrity: sha512-XC0ikSXgw2fRN+S3f+qYYHX5Y3AyAW+lBLJXDWbUW+LXSh5oVtEciaw+RboXYtMbgAvHRhonFGeUmSJ2IRV8+g==}
 
-  '@ldb/mongo@6.6.1':
-    resolution: {integrity: sha512-uFY3wxGF/DGokbyatWGRTw6u59hhj+W/r/MEN2E5r7aYc2lCQaC15/YAj3LPOZMoyNQ+mYa4PiIwfg14Gx66Mw==}
+  '@ldb/mongo@6.6.2':
+    resolution: {integrity: sha512-gJn9HTnU6iRrFDSM7+fBPkAeQ4QSuPj0gKAUiydDZpGC4bFkH9WIwFJAKNMSg1GLoNda22tShshK6tmDhYL6pw==}
 
   '@ldb/scheduler@2.0.0':
     resolution: {integrity: sha512-ajFJ8apPb/UXFYWdWcGKk05NenZRgjzHaXg4pnYqQWIeetjGAqUjqu0FvOZ0u0YbLk4SGT7G4AP7JOZTolGLYg==}
@@ -2870,7 +2870,7 @@ snapshots:
       - debug
       - supports-color
 
-  '@ldb/mongo@6.6.1':
+  '@ldb/mongo@6.6.2':
     dependencies:
       bson: 6.7.0
       mongodb: 6.6.2
