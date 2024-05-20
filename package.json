@@ -16,7 +16,7 @@
     ],
     "dependencies": {
         "@ldb/logger": "1.0.0",
-        "@ldb/mongo": "^6.5.0",
+        "@ldb/mongo": "^6.6.1",
         "@ldb/scheduler": "^2.0.0",
         "@ldb/sentry-logger": "1.0.0",
         "@ldb/skynex-logger": "1.0.0",
@@ -31,7 +31,7 @@
         "@ldb/base-logger": "1.0.0",
         "@tsconfig/node20": "^20.1.4",
         "@types/jest": "^29.5.12",
-        "@types/node": "^20.12.7",
+        "@types/node": "^20.12.12",
         "eslint": "^8.57.0",
         "eslint-config-google": "^0.14.0",
         "eslint-config-prettier": "^9.1.0",
@@ -41,11 +41,11 @@
         "jest-html-reporters": "^3.1.7",
         "jest-junit": "^16.0.0",
         "jest-sonar-reporter": "^2.0.0",
-        "rimraf": "^5.0.5",
+        "rimraf": "^5.0.7",
         "ts-jest": "^29.1.2",
         "ts-node": "^10.9.2",
         "typescript": "^5.4.5",
-        "typescript-eslint": "^7.7.1"
+        "typescript-eslint": "^7.9.0"
     },
     "jestSonar": {
         "reportPath": "reports",
