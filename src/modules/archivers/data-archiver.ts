@@ -1,9 +1,9 @@
 import type { BaseLogger } from "@ldb/base-logger";
 import type { ChangeStreamNameSpace, Document, FindOptions, MongoClient } from "@ldb/mongo";
-import type { ArchiveStatusConfig } from "../types/archive-config.js";
-import type { ArchiveOptions, ArchiveStatusOptions, CopyMode } from "../types/archive-options.js";
-import type { ArchiveProcessor, ProcessorEvents } from "./archive-processor.js";
-import { Dispatcher } from "./dispatcher.js";
+import type { ArchiveStatusConfig } from "../../types/archive-config.js";
+import type { ArchiveOptions, ArchiveStatusOptions, CopyMode } from "../../types/archive-options.js";
+import { Dispatcher } from "../dispatcher.js";
+import type { ArchiveProcessor, ProcessorEvents } from "../processors/archive-processor.js";
 
 export const FIND_OPTIONS = { noCursorTimeout: true } as const satisfies FindOptions;
 

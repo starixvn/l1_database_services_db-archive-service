@@ -1,8 +1,8 @@
 import type { BaseLogger } from "@ldb/base-logger";
-import type { ArchiveConfig } from "../types/archive-config.js";
-import type { ArchiveOptions, CopyDataOptions, CopyMode } from "../types/archive-options.js";
-import type { ArchiveInitiator, InitiatorEvents } from "./archive-initiator.js";
-import { Dispatcher } from "./dispatcher.js";
+import type { ArchiveConfig } from "../../types/archive-config.js";
+import type { ArchiveOptions, CopyDataOptions, CopyMode } from "../../types/archive-options.js";
+import { Dispatcher } from "../dispatcher.js";
+import type { ArchiveInitiator, InitiatorEvents } from "../initiators/archive-initiator.js";
 
 export type ProcessorEvents<T extends CopyMode> = Record<T, (c: ArchiveOptions<T>) => Promise<void>>;
 

@@ -1,9 +1,9 @@
 import type { BaseLogger } from "@ldb/base-logger";
 import type { Collection } from "@ldb/mongo";
-import { parseArchiveConfig } from "../helpers/archive-configs.js";
-import type { ArchiveConfig, SchemaArchiveConfig } from "../types/archive-config.js";
-import type { Scheduler, SchedulerEvents, SchedulerKeys } from "../types/scheduler.js";
-import { Dispatcher } from "./dispatcher.js";
+import { parseArchiveConfig } from "../../helpers/archive-configs.js";
+import type { ArchiveConfig, SchemaArchiveConfig } from "../../types/archive-config.js";
+import type { Scheduler, SchedulerEvents, SchedulerKeys } from "../../types/scheduler.js";
+import { Dispatcher } from "../dispatcher.js";
 
 export type InitiatorEvents = {
     ARCHIVE: (c: ArchiveConfig) => Promise<void>;

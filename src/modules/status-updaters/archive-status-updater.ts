@@ -1,8 +1,8 @@
 import type { BaseLogger } from "@ldb/base-logger";
 import type { ChangeStreamNameSpace, Collection, FindOptions, MongoClient, UpdateOptions } from "@ldb/mongo";
-import type { ArchiveStatusOptions, CopyMode } from "../types/archive-options.js";
-import type { ArchiverEvents, DataArchiver } from "./data-archiver.js";
-import { Subscriber } from "./subscriber.js";
+import type { ArchiveStatusOptions, CopyMode } from "../../types/archive-options.js";
+import type { ArchiverEvents, DataArchiver } from "../archivers/data-archiver.js";
+import { Subscriber } from "../subscriber.js";
 
 const UPDATE_OPTIONS = { upsert: true, willRetryWrite: true, retryWrites: true } as const satisfies UpdateOptions;
 

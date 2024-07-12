@@ -1,11 +1,11 @@
 import type { BaseLogger } from "@ldb/base-logger";
 import type { Scheduler } from "@ldb/scheduler";
 import { name, version } from "./metadata.js";
-import type { ArchiveInitiator } from "./modules/archive-initiator.js";
-import { ArchiveProcessor } from "./modules/archive-processor.js";
-import { ArchiveStatusUpdater } from "./modules/archive-status-updater.js";
-import { MultipleArchiver } from "./modules/multiple-archiver.js";
-import { SingleArchiver } from "./modules/single-archiver.js";
+import { MultipleArchiver } from "./modules/archivers/multiple-archiver.js";
+import { SingleArchiver } from "./modules/archivers/single-archiver.js";
+import type { ArchiveInitiator } from "./modules/initiators/archive-initiator.js";
+import { ArchiveProcessor } from "./modules/processors/archive-processor.js";
+import { ArchiveStatusUpdater } from "./modules/status-updaters/archive-status-updater.js";
 
 let exiting = false;
 

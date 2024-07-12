@@ -1,9 +1,9 @@
 import type { BaseLogger } from "@ldb/base-logger";
 import type { MongoClient } from "@ldb/mongo";
-import type { ArchiveOptions } from "../types/archive-options.js";
-import { ensureTime } from "../utils/time.js";
-import type { ArchiveProcessor } from "./archive-processor.js";
-import { BulkWriter } from "./bulk-writer.js";
+import type { ArchiveOptions } from "../../types/archive-options.js";
+import { ensureTime } from "../../utils/time.js";
+import { BulkWriter } from "../bulk-writer.js";
+import type { ArchiveProcessor } from "../processors/archive-processor.js";
 import { DataArchiver, FIND_OPTIONS } from "./data-archiver.js";
 
 export class SingleArchiver extends DataArchiver<"SINGLE"> {
