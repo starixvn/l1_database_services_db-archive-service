@@ -1,16 +1,10 @@
 import type { BaseLogger } from "@ldb/base-logger";
-import type { FindCursor, MongoClient } from "@ldb/mongo";
+import type { MongoClient } from "@ldb/mongo";
 import type { ArchiveOptions } from "../../types/archive-options.js";
 import { ensureTime } from "../../utils/time.js";
 import { BulkWriter } from "../bulk-writer.js";
 import type { ArchiveProcessor } from "../processors/archive-processor.js";
-import { DataArchiver, FIND_OPTIONS } from "./data-archiver.js";
-
-const closeCursor = <T>(cursor: FindCursor<T>) => {
-    if (!cursor.closed) {
-        cursor.close();
-    }
-};
+import { closeCursor, DataArchiver } from "./data-archiver.js";
 
 export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
     constructor(sourceMongo: MongoClient, targetMongo: MongoClient, logger: BaseLogger) {
@@ -19,7 +13,7 @@ export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
     }
 
     protected async executeCopy(options: ArchiveOptions<"MULTIPLE">) {
-        const { from, to, filter, dataOptions, log } = options;
+        const { from, to, filterPipeline, dataOptions, log } = options;
         const { name, timeAlias, updateOnly, childs, localField } = dataOptions;
 
         this.initUpdateArchiveStatus(to, { name }, log);
@@ -39,34 +33,66 @@ export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
             bulkWriter.add(childFromColl, childToColl);
         }
 
-        const parentDataCursor = parentFromColl.find(filter, FIND_OPTIONS);
+        const parentDataCursor = parentFromColl.aggregate(filterPipeline, { allowDiskUse: true }).addCursorFlag("noCursorTimeout", true);
 
         for await (const parentDoc of parentDataCursor) {
             const { _id } = parentDoc;
             const eventtime = ensureTime(parentDoc[`${timeAlias}`]);
 
             if (!updateOnly) {
-                bulkWriter.set(parentToColl, { updateOne: { filter: { _id }, update: { $set: parentDoc }, upsert: true } });
+                bulkWriter.set(parentToColl, {
+                    updateOne: {
+                        filter: { _id },
+                        update: { $set: parentDoc },
+                        upsert: true,
+                    },
+                });
             }
-            bulkWriter.set(parentFromColl, { updateOne: { filter: { _id }, update: { $set: { "__archive.eventtime": eventtime } } } });
+            bulkWriter.set(parentFromColl, {
+                updateOne: {
+                    filter: { _id },
+                    update: {
+                        $set: {
+                            "__archive.eventtime": eventtime,
+                            "__archive.v": 2,
+                        },
+                    },
+                },
+            });
 
             for (const child of childs) {
-                const { from: fromChild, to: toChild, filter: filterChild, config: configChild } = child;
+                const { from: fromChild, to: toChild, filterPipeline: filterChild, config: configChild } = child;
                 const { foreignField, updateOnly: updateOnlyChild } = configChild;
 
                 const childFromColl = this.getSourceCollection(fromChild);
                 const childToColl = this.getTargetCollection(toChild);
 
-                const filter = { ...filterChild, [foreignField]: parentDoc[`${localField}`] };
-                const childDataCursor = childFromColl.find(filter, FIND_OPTIONS);
+                const filterPipelineChild = [{ $match: { [foreignField]: parentDoc[`${localField}`] } }, ...filterChild];
+                const childDataCursor = childFromColl.aggregate(filterPipelineChild, { allowDiskUse: true }).addCursorFlag("noCursorTimeout", true);
 
                 for await (const childDoc of childDataCursor) {
                     const { _id: _idChild } = childDoc;
 
                     if (!updateOnlyChild) {
-                        bulkWriter.set(childToColl, { updateOne: { filter: { _id: _idChild }, update: { $set: childDoc }, upsert: true } });
+                        bulkWriter.set(childToColl, {
+                            updateOne: {
+                                filter: { _id: _idChild },
+                                update: { $set: childDoc },
+                                upsert: true,
+                            },
+                        });
                     }
-                    bulkWriter.set(childFromColl, { updateOne: { filter: { _id: _idChild }, update: { $set: { "__archive.eventtime": eventtime } } } });
+                    bulkWriter.set(childFromColl, {
+                        updateOne: {
+                            filter: { _id: _idChild },
+                            update: {
+                                $set: {
+                                    "__archive.eventtime": eventtime,
+                                    "__archive.v": 2,
+                                },
+                            },
+                        },
+                    });
                 }
 
                 closeCursor(childDataCursor);

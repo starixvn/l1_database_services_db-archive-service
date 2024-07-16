@@ -17,14 +17,14 @@ export class ArchiveProcessor extends Dispatcher<ProcessorEvents<CopyMode>, keyo
     }
 
     private async processArchive(archiveConfig: ArchiveConfig) {
-        const { id, gameConfigs, from, to, alias, filter, config, log, childs } = archiveConfig;
+        const { id, gameConfigs, from, to, alias, filterPipeline, config, log, childs } = archiveConfig;
         const { name } = gameConfigs;
         const { time: timeAlias } = alias;
         const { localField, updateOnly } = config;
 
         if (childs.length === 0) {
             const dataOptions: CopyDataOptions<"SINGLE"> = { name, updateOnly, timeAlias };
-            this.emit<"SINGLE">("SINGLE", { id, from, to, filter, dataOptions, log });
+            this.emit<"SINGLE">("SINGLE", { id, from, to, filterPipeline, dataOptions, log });
             return;
         }
 
@@ -35,7 +35,7 @@ export class ArchiveProcessor extends Dispatcher<ProcessorEvents<CopyMode>, keyo
         }
 
         const dataOptions: CopyDataOptions<"MULTIPLE"> = { name, updateOnly, timeAlias, localField, childs };
-        this.emit<"MULTIPLE">("MULTIPLE", { id, from, to, filter, dataOptions, log });
+        this.emit<"MULTIPLE">("MULTIPLE", { id, from, to, filterPipeline, dataOptions, log });
     }
 
     subscribe(publisher: ArchiveInitiator) {

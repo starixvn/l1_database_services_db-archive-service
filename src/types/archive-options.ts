@@ -18,7 +18,7 @@ export type ArchiveOptions<T extends CopyMode> = {
     id: number;
     from: ChangeStreamNameSpace;
     to: ChangeStreamNameSpace;
-    filter: Document;
+    filterPipeline: Document[];
     dataOptions: CopyDataOptions<T>;
     log?: ArchiveStatusConfig;
 };

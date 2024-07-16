@@ -1,11 +1,17 @@
 import type { BaseLogger } from "@ldb/base-logger";
-import type { ChangeStreamNameSpace, Document, FindOptions, MongoClient } from "@ldb/mongo";
+import type { AggregationCursor, ChangeStreamNameSpace, Document, FindCursor, FindOptions, MongoClient } from "@ldb/mongo";
 import type { ArchiveStatusConfig } from "../../types/archive-config.js";
 import type { ArchiveOptions, ArchiveStatusOptions, CopyMode } from "../../types/archive-options.js";
 import { Dispatcher } from "../dispatcher.js";
 import type { ArchiveProcessor, ProcessorEvents } from "../processors/archive-processor.js";
 
 export const FIND_OPTIONS = { noCursorTimeout: true } as const satisfies FindOptions;
+
+export const closeCursor = <T>(cursor: FindCursor<T> | AggregationCursor<T>) => {
+    if (!cursor.closed) {
+        cursor.close();
+    }
+};
 
 export type ArchiverEvents = {
     UPDATE_ARCHIVE_STATUS: (c: ArchiveStatusOptions) => Promise<void>;
