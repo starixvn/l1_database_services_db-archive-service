@@ -112,7 +112,12 @@ const parseGroupFilter = (filterConfigs: GroupFilter, gameConfigs: GameConfigInf
                 as: FILTER_LOOKUP_FIELD,
             },
         },
-        { $unwind: `$${FILTER_LOOKUP_FIELD}` },
+        {
+            $unwind: {
+                path: `$${FILTER_LOOKUP_FIELD}`,
+                preserveNullAndEmptyArrays: true,
+            },
+        },
         { $match: EJSON.parse(filterExpr) },
     ];
 };
@@ -136,7 +141,12 @@ const parseExternalFilter = (filterConfigs: ExternalFilter) => {
                 as: FILTER_LOOKUP_FIELD,
             },
         },
-        { $unwind: `$${FILTER_LOOKUP_FIELD}` },
+        {
+            $unwind: {
+                path: `$${FILTER_LOOKUP_FIELD}`,
+                preserveNullAndEmptyArrays: true,
+            },
+        },
         { $match: EJSON.parse(filterExpr) },
     ];
 };
