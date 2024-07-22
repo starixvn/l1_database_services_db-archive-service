@@ -18,11 +18,11 @@ import {
 } from "./app-configs.js";
 import { App } from "./app.js";
 import { HealthcheckServer } from "./healthcheck/server.js";
-import { ArchiveInitiator } from "./modules/archive-initiator.js";
-import { ArchiveProcessor } from "./modules/archive-processor.js";
-import { ArchiveStatusUpdater } from "./modules/archive-status-updater.js";
-import { MultipleArchiver } from "./modules/multiple-archiver.js";
-import { SingleArchiver } from "./modules/single-archiver.js";
+import { MultipleArchiver } from "./modules/archivers/multiple-archiver.js";
+import { SingleArchiver } from "./modules/archivers/single-archiver.js";
+import { ArchiveInitiator } from "./modules/initiators/archive-initiator.js";
+import { ArchiveProcessor } from "./modules/processors/archive-processor.js";
+import { ArchiveStatusUpdater } from "./modules/status-updaters/archive-status-updater.js";
 import { namespaces } from "./namespaces.js";
 
 export class Container {

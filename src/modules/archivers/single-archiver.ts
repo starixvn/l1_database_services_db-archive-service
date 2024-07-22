@@ -1,10 +1,10 @@
 import type { BaseLogger } from "@ldb/base-logger";
 import type { MongoClient } from "@ldb/mongo";
-import type { ArchiveOptions } from "../types/archive-options.js";
-import { ensureTime } from "../utils/time.js";
-import type { ArchiveProcessor } from "./archive-processor.js";
-import { BulkWriter } from "./bulk-writer.js";
-import { DataArchiver, FIND_OPTIONS } from "./data-archiver.js";
+import type { ArchiveOptions } from "../../types/archive-options.js";
+import { ensureTime } from "../../utils/time.js";
+import { BulkWriter } from "../bulk-writer.js";
+import type { ArchiveProcessor } from "../processors/archive-processor.js";
+import { closeCursor, DataArchiver } from "./data-archiver.js";
 
 export class SingleArchiver extends DataArchiver<"SINGLE"> {
     constructor(sourceMongo: MongoClient, targetMongo: MongoClient, logger: BaseLogger) {
@@ -13,7 +13,7 @@ export class SingleArchiver extends DataArchiver<"SINGLE"> {
     }
 
     protected async executeCopy(options: ArchiveOptions<"SINGLE">) {
-        const { from, to, filter, dataOptions, log } = options;
+        const { from, to, filterPipeline, dataOptions, log } = options;
         const { name, timeAlias, updateOnly } = dataOptions;
 
         const fromCollection = this.getSourceCollection(from);
@@ -23,7 +23,7 @@ export class SingleArchiver extends DataArchiver<"SINGLE"> {
         const bulkWriter = new BulkWriter(this.logger);
         bulkWriter.add(fromCollection, toCollection);
 
-        const fromDataCursor = fromCollection.find(filter, FIND_OPTIONS);
+        const fromDataCursor = fromCollection.aggregate(filterPipeline, { allowDiskUse: true }).addCursorFlag("noCursorTimeout", true);
 
         for await (const document of fromDataCursor) {
             const { _id } = document;
@@ -32,16 +32,24 @@ export class SingleArchiver extends DataArchiver<"SINGLE"> {
             if (!updateOnly) {
                 bulkWriter.set(toCollection, { updateOne: { filter: { _id }, update: { $set: document }, upsert: true } });
             }
-            bulkWriter.set(fromCollection, { updateOne: { filter: { _id }, update: { $set: { "__archive.eventtime": eventtime } } } });
+            bulkWriter.set(fromCollection, {
+                updateOne: {
+                    filter: { _id },
+                    update: {
+                        $set: {
+                            "__archive.eventtime": eventtime,
+                            "__archive.v": 2,
+                        },
+                    },
+                },
+            });
 
             await bulkWriter.write();
         }
 
         await bulkWriter.write(0);
 
-        if (!fromDataCursor.closed) {
-            fromDataCursor.close();
-        }
+        closeCursor(fromDataCursor);
 
         this.initUpdateArchiveStatus(to, { name }, log);
     }
