@@ -1,4 +1,4 @@
-import type { BaseLogger } from "@ldb/base-logger";
+import type { BaseLogger } from "@ldb/logger";
 import type { AggregationCursor, ChangeStreamNameSpace, Document, FindCursor, FindOptions, MongoClient } from "@ldb/mongo";
 import type { ArchiveStatusConfig } from "../../types/archive-config.js";
 import type { ArchiveOptions, ArchiveStatusOptions, CopyMode } from "../../types/archive-options.js";

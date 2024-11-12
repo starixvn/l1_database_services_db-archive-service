@@ -1,4 +1,4 @@
-import type { BaseLogger } from "@ldb/base-logger";
+import type { BaseLogger } from "@ldb/logger";
 import type { Scheduler } from "@ldb/scheduler";
 import { name, version } from "./metadata.js";
 import { MultipleArchiver } from "./modules/archivers/multiple-archiver.js";

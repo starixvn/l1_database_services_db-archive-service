@@ -1,4 +1,4 @@
-import type { BaseLogger } from "@ldb/base-logger";
+import type { BaseLogger } from "@ldb/logger";
 import type { ArchiveConfig } from "../../types/archive-config.js";
 import type { ArchiveOptions, CopyDataOptions, CopyMode } from "../../types/archive-options.js";
 import { Dispatcher } from "../dispatcher.js";

@@ -1,4 +1,4 @@
-import type { BaseLogger } from "@ldb/base-logger";
+import type { BaseLogger } from "@ldb/logger";
 import type { Collection } from "@ldb/mongo";
 import { parseArchiveConfig } from "../../helpers/archive-configs.js";
 import type { ArchiveConfig, OpsArchiveConfig } from "../../types/archive-config.js";

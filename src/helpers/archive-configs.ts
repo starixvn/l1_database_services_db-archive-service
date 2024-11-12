@@ -1,4 +1,4 @@
-import { EJSON, type ChangeStreamNameSpace } from "@ldb/mongo";
+import { EJSON, ObjectId, type ChangeStreamNameSpace } from "@ldb/mongo";
 import type {
     ArchiveConfig,
     ArchiveConfigDetail,
@@ -83,7 +83,18 @@ const buildFilters = (filterConfigs: FilterConfigs, gameConfigs: GameConfigInfo,
 
 const filterCutoffTime = (timeField?: string, cutoffTime?: Date) => {
     if (timeField && cutoffTime) {
-        return [{ $match: { $expr: { $lt: [{ $toDate: `$${timeField}` }, { $literal: cutoffTime }] } } }];
+        return [
+            {
+                $match: {
+                    $or: [
+                        { [timeField]: { $type: "date", $lt: cutoffTime } },
+                        { [timeField]: { $type: "string", $lt: cutoffTime.toISOString() } },
+                        { [timeField]: { $type: "number", $lt: cutoffTime.valueOf() } },
+                        { [timeField]: { $type: "objectId", $lt: ObjectId.createFromTime(cutoffTime.valueOf() / 1_000) } },
+                    ],
+                },
+            },
+        ];
     }
     return [];
 };

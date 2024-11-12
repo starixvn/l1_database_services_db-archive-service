@@ -1,4 +1,4 @@
-import type { BaseLogger } from "@ldb/base-logger";
+import type { BaseLogger } from "@ldb/logger";
 import { GenericListener, TypedEventEmitter } from "@ldb/types";
 
 export class Subscriber<

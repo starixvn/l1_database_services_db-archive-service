@@ -1,5 +1,6 @@
-import type { BaseLogger } from "@ldb/base-logger";
+import type { BaseLogger } from "@ldb/logger";
 import type { MongoClient } from "@ldb/mongo";
+import { version } from "../../metadata.js";
 import type { ArchiveOptions } from "../../types/archive-options.js";
 import { ensureTime } from "../../utils/time.js";
 import { BulkWriter } from "../bulk-writer.js";
@@ -38,7 +39,7 @@ export class SingleArchiver extends DataArchiver<"SINGLE"> {
                     update: {
                         $set: {
                             "__archive.eventtime": eventtime,
-                            "__archive.v": 2,
+                            "__archive.v": version,
                         },
                     },
                 },
