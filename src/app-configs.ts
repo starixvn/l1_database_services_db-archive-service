@@ -39,6 +39,6 @@ export const database = {
     archiveUrl: `mongodb://${arcCred}@${arcSrv}/admin?authSource=admin&appName=${encodeURIComponent(name)}&replicaSet=${arcRepl}`,
 } as const;
 
-export const eventConfigs = {
-    RUN_ARCHIVE: 60_000,
+export const schedulerConfig = {
+    RUN_ARCHIVE: [60_000, 0],
 } as const satisfies SchedulerConfigs;

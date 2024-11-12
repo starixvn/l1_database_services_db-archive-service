@@ -5,7 +5,7 @@ import { Scheduler } from "@ldb/scheduler";
 import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode, ResolveOptions } from "awilix";
 import {
     environment,
-    eventConfigs,
+    schedulerConfig,
     healthcheckPort,
     sentryNodeOptions,
     sentryOptions,
@@ -62,7 +62,7 @@ export class Container {
     private registerScheduler() {
         this.container.register({
             scheduler: asClass(Scheduler).singleton(),
-            eventConfigs: asValue(eventConfigs),
+            schedulerConfig: asValue(schedulerConfig),
         });
         return this;
     }

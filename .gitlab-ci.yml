@@ -1,7 +1,7 @@
 variables:
-    NODEJS_IMAGE: hub.lumigame.com/docker-hub/library/node:lts-alpine
+  NODEJS_IMAGE: FROM hub.lumigame.com/ldb/node-base:22 AS base
 
 include:
-    - project: ci/core-cicd
-      ref: main
-      file: luminet.gitlab-ci.yml
+  - project: ci/core-cicd
+    ref: main
+    file: luminet.gitlab-ci.yml

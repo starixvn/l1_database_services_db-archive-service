@@ -6,6 +6,7 @@ import { SingleArchiver } from "./modules/archivers/single-archiver.js";
 import type { ArchiveInitiator } from "./modules/initiators/archive-initiator.js";
 import { ArchiveProcessor } from "./modules/processors/archive-processor.js";
 import { ArchiveStatusUpdater } from "./modules/status-updaters/archive-status-updater.js";
+import type { SchedulerKeys } from "./types/scheduler.js";
 
 let exiting = false;
 
@@ -13,13 +14,13 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export class App {
     constructor(
-        private readonly scheduler: Scheduler,
+        private readonly scheduler: Scheduler<SchedulerKeys>,
         private readonly archiveInitiator: ArchiveInitiator,
         private readonly archiveProcessor: ArchiveProcessor,
         private readonly singleArchiver: SingleArchiver,
         private readonly multipleArchiver: MultipleArchiver,
         private readonly archiveStatusUpdater: ArchiveStatusUpdater,
-        private readonly logger: BaseLogger
+        private readonly logger: BaseLogger,
     ) {
         this.selfBound();
         this.handleExceptions();
@@ -40,6 +41,8 @@ export class App {
     }
 
     private async handleUncaughtException(error: Error, origin: NodeJS.UncaughtExceptionOrigin) {
+        this.terminate();
+
         while (exiting) {
             await wait(1_000);
         }
@@ -52,6 +55,8 @@ export class App {
     }
 
     private async handleUnhandledRejection(reason: unknown, promise: Promise<unknown>) {
+        this.terminate();
+
         while (exiting) {
             await wait(5_000);
         }
@@ -75,5 +80,17 @@ export class App {
         this.archiveInitiator.subscribe(this.scheduler);
 
         this.logger.logWarning({ title: `${name}@${version}`, message: "App has been started." });
+    }
+
+    private terminate() {
+        this.archiveInitiator.unsubscribe(this.scheduler);
+
+        this.archiveProcessor.unsubscribe(this.archiveInitiator);
+
+        this.singleArchiver.unsubscribe(this.archiveProcessor);
+        this.multipleArchiver.unsubscribe(this.archiveProcessor);
+
+        this.archiveStatusUpdater.unsubscribe(this.singleArchiver);
+        this.archiveStatusUpdater.unsubscribe(this.multipleArchiver);
     }
 }
