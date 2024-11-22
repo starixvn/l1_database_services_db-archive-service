@@ -410,7 +410,7 @@ packages:
       prettier: 3.3.x
 
   '@ldb/scheduler@0.4.0':
-    resolution: {integrity: sha512-5L0EcNU2y+g5B+pQzIruSa+rU8RbvyO89UMmVSHhIUlz7lhxMJL+UzdWDkRJ2weyNy7fDHqtxYpLU/pr7OIveQ==}
+    resolution: {integrity: sha512-WJKuCbiVYRVl9RCsXGtDLTOn5fIB/v2sQsDdOiRTQoJ8JtcDSiJowbxVLIJOrULhngxC+a8LfttgLwEn8R3RyQ==}
 
   '@ldb/sentry-logger@1.1.2':
     resolution: {integrity: sha512-X/V6D7F78mQmig09ed0yup0TQYDerZ07gqJCgdw3Tfs8telWCwchvUOxQwPcgf05zfg95giD3K4ZV+63YjyotA==}
@@ -426,9 +426,6 @@ packages:
 
   '@ldb/utils@0.3.1':
     resolution: {integrity: sha512-YZ9FwnZD5SuY4he6hakB4k/Pc3KDHeUe9IdR71WcqsmQRpOhQhe1ayd3gJOgka4vbD1wd+c040j/qyjqfVlYig==}
-
-  '@ldb/utils@0.3.2':
-    resolution: {integrity: sha512-ltQfKn52ORqyoSg2OogRM4YUsWzhQH8y1xf7plo1OlRBDltinlLOSALMQUaChZGO/IJNAxZ6V5Y+ghkAr/ru7A==}
 
   '@ldb/utils@0.3.4':
     resolution: {integrity: sha512-iCWttrbA6AfY9sMvUHNfIgeGjUQeCPACv7DDuRh9eF0qkvQ8jzBCN9t+rQH8hqq8/t2DIi8GcKAY1ykt3NdgPA==}
@@ -2169,7 +2166,7 @@ snapshots:
 
   '@ldb/scheduler@0.4.0':
     dependencies:
-      '@ldb/utils': 0.3.2
+      '@ldb/utils': 0.3.4
 
   '@ldb/sentry-logger@1.1.2':
     dependencies:
@@ -2200,10 +2197,6 @@ snapshots:
       '@tsconfig/node22': 22.0.0
 
   '@ldb/utils@0.3.1': {}
-
-  '@ldb/utils@0.3.2':
-    dependencies:
-      '@ldb/base-logger': 1.1.4
 
   '@ldb/utils@0.3.4':
     dependencies:
