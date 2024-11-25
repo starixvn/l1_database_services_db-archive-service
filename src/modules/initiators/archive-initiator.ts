@@ -1,16 +1,20 @@
-import type { BaseLogger } from "@ldb/base-logger";
+import type { BaseLogger } from "@ldb/logger";
 import type { Collection } from "@ldb/mongo";
+import type { Scheduler } from "@ldb/scheduler";
+import { Dispatcher } from "@ldb/utils";
 import { parseArchiveConfig } from "../../helpers/archive-configs.js";
 import type { ArchiveConfig, OpsArchiveConfig } from "../../types/archive-config.js";
-import type { Scheduler, SchedulerEvents, SchedulerKeys } from "../../types/scheduler.js";
-import { Dispatcher } from "../dispatcher.js";
+import type { SchedulerEvents, SchedulerKeys } from "../../types/scheduler.js";
 
 export type InitiatorEvents = {
     ARCHIVE: (c: ArchiveConfig) => Promise<void>;
 };
 
-export class ArchiveInitiator extends Dispatcher<InitiatorEvents, SchedulerKeys, SchedulerEvents, Scheduler> {
-    constructor(private readonly archiveConfigCollection: Collection, logger: BaseLogger) {
+export class ArchiveInitiator extends Dispatcher<InitiatorEvents, SchedulerEvents> {
+    constructor(
+        private readonly archiveConfigCollection: Collection,
+        logger: BaseLogger,
+    ) {
         super(logger);
         this.selfBound();
     }
@@ -32,11 +36,11 @@ export class ArchiveInitiator extends Dispatcher<InitiatorEvents, SchedulerKeys,
         return this.archiveConfigCollection.find<OpsArchiveConfig>({}, { projection: { _id: 0 } });
     }
 
-    subscribe(publisher: Scheduler) {
+    subscribe(publisher: Scheduler<SchedulerKeys>) {
         return super.subscribe(publisher, "RUN_ARCHIVE", this.initArchive);
     }
 
-    unsubscribe(publisher: Scheduler) {
+    unsubscribe(publisher: Scheduler<SchedulerKeys>) {
         return super.unsubscribe(publisher, "RUN_ARCHIVE", this.initArchive);
     }
 }

@@ -1,8 +1,8 @@
-import type { BaseLogger } from "@ldb/base-logger";
+import type { BaseLogger } from "@ldb/logger";
 import type { AggregationCursor, ChangeStreamNameSpace, Document, FindCursor, FindOptions, MongoClient } from "@ldb/mongo";
+import { Dispatcher, type StringKeyOf } from "@ldb/utils";
 import type { ArchiveStatusConfig } from "../../types/archive-config.js";
 import type { ArchiveOptions, ArchiveStatusOptions, CopyMode } from "../../types/archive-options.js";
-import { Dispatcher } from "../dispatcher.js";
 import type { ArchiveProcessor, ProcessorEvents } from "../processors/archive-processor.js";
 
 export const FIND_OPTIONS = { noCursorTimeout: true } as const satisfies FindOptions;
@@ -17,10 +17,14 @@ export type ArchiverEvents = {
     UPDATE_ARCHIVE_STATUS: (c: ArchiveStatusOptions) => Promise<void>;
 };
 
-export class DataArchiver<E extends CopyMode> extends Dispatcher<ArchiverEvents, E, ProcessorEvents<E>, ArchiveProcessor> {
+export class DataArchiver<E extends CopyMode> extends Dispatcher<ArchiverEvents, ProcessorEvents<E>> {
     private readonly flags: Map<string, Date> = new Map();
 
-    constructor(private readonly sourceMongo: MongoClient, private readonly targetMongo: MongoClient, logger: BaseLogger) {
+    constructor(
+        private readonly sourceMongo: MongoClient,
+        private readonly targetMongo: MongoClient,
+        logger: BaseLogger,
+    ) {
         super(logger);
     }
 
@@ -76,11 +80,11 @@ export class DataArchiver<E extends CopyMode> extends Dispatcher<ArchiverEvents,
         this.emit<"UPDATE_ARCHIVE_STATUS">("UPDATE_ARCHIVE_STATUS", { target, filter, options });
     }
 
-    subscribe(publisher: ArchiveProcessor, event: E) {
+    subscribe<Event extends StringKeyOf<ProcessorEvents<E>>>(publisher: ArchiveProcessor, event: Event) {
         return super.subscribe(publisher, event, this.copyData);
     }
 
-    unsubscribe(publisher: ArchiveProcessor, event: E) {
+    unsubscribe<Event extends StringKeyOf<ProcessorEvents<E>>>(publisher: ArchiveProcessor, event: Event) {
         return super.unsubscribe(publisher, event, this.copyData);
     }
 }

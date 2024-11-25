@@ -1,13 +1,11 @@
-import { Logger } from "@ldb/logger";
+import { HealthcheckServer } from "@ldb/healthcheck";
+import { Logger, SentryLogger, SkynexLogger, TerminalLogger } from "@ldb/logger";
 import type { MongoClient } from "@ldb/mongo";
 import { Scheduler } from "@ldb/scheduler";
-import { SentryLogger } from "@ldb/sentry-logger";
-import { SkynexLogger } from "@ldb/skynex-logger";
-import { TerminalLogger } from "@ldb/terminal-logger";
 import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode, ResolveOptions } from "awilix";
 import {
     environment,
-    eventConfigs,
+    schedulerConfig,
     healthcheckPort,
     sentryNodeOptions,
     sentryOptions,
@@ -17,7 +15,7 @@ import {
     terminalSeverityLevel,
 } from "./app-configs.js";
 import { App } from "./app.js";
-import { HealthcheckServer } from "./healthcheck/server.js";
+import { name, version } from "./metadata.js";
 import { MultipleArchiver } from "./modules/archivers/multiple-archiver.js";
 import { SingleArchiver } from "./modules/archivers/single-archiver.js";
 import { ArchiveInitiator } from "./modules/initiators/archive-initiator.js";
@@ -64,7 +62,7 @@ export class Container {
     private registerScheduler() {
         this.container.register({
             scheduler: asClass(Scheduler).singleton(),
-            eventConfigs: asValue(eventConfigs),
+            schedulerConfig: asValue(schedulerConfig),
         });
         return this;
     }
@@ -84,6 +82,7 @@ export class Container {
     private registerHealthcheck() {
         this.container.register({
             healthcheckServer: asClass(HealthcheckServer).singleton(),
+            metadata: asValue({ name, version }),
             healthcheckPort: asValue(healthcheckPort),
         });
         return this;

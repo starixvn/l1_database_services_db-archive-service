@@ -1,6 +1,4 @@
-import type { SeverityLevel } from "@ldb/base-logger";
-import type { NodeOptions, SentryOptions } from "@ldb/sentry-logger";
-import type { SkynexOptions } from "@ldb/skynex-logger";
+import type { NodeOptions, SentryOptions, SeverityLevel, SkynexOptions } from "@ldb/logger";
 import { name, version } from "./metadata.js";
 import type { SchedulerConfigs } from "./types/scheduler.js";
 
@@ -41,6 +39,6 @@ export const database = {
     archiveUrl: `mongodb://${arcCred}@${arcSrv}/admin?authSource=admin&appName=${encodeURIComponent(name)}&replicaSet=${arcRepl}`,
 } as const;
 
-export const eventConfigs = {
-    RUN_ARCHIVE: 60_000,
+export const schedulerConfig = {
+    RUN_ARCHIVE: [60_000, 0],
 } as const satisfies SchedulerConfigs;

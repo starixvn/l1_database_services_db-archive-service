@@ -1,5 +1,5 @@
 import { ChangeStreamNameSpace, Document } from "@ldb/mongo";
-import { ArchiveStatusConfig, ChildArchiveConfig } from "./archive-config";
+import { ArchiveStatusConfig, ChildArchiveConfig } from "./archive-config.js";
 
 export type CopyMode = "SINGLE" | "MULTIPLE";
 

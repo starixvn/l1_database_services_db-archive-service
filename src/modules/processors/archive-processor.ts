@@ -1,12 +1,12 @@
-import type { BaseLogger } from "@ldb/base-logger";
+import type { BaseLogger } from "@ldb/logger";
+import { Dispatcher } from "@ldb/utils";
 import type { ArchiveConfig } from "../../types/archive-config.js";
 import type { ArchiveOptions, CopyDataOptions, CopyMode } from "../../types/archive-options.js";
-import { Dispatcher } from "../dispatcher.js";
 import type { ArchiveInitiator, InitiatorEvents } from "../initiators/archive-initiator.js";
 
 export type ProcessorEvents<T extends CopyMode> = Record<T, (c: ArchiveOptions<T>) => Promise<void>>;
 
-export class ArchiveProcessor extends Dispatcher<ProcessorEvents<CopyMode>, keyof InitiatorEvents, InitiatorEvents, ArchiveInitiator> {
+export class ArchiveProcessor extends Dispatcher<ProcessorEvents<CopyMode>, InitiatorEvents> {
     constructor(logger: BaseLogger) {
         super(logger);
         this.selfBound();

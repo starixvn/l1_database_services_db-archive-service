@@ -1,13 +1,17 @@
-import type { BaseLogger } from "@ldb/base-logger";
+import type { BaseLogger } from "@ldb/logger";
 import type { ChangeStreamNameSpace, Collection, FindOptions, MongoClient, UpdateOptions } from "@ldb/mongo";
+import { Subscriber } from "@ldb/utils";
 import type { ArchiveStatusOptions, CopyMode } from "../../types/archive-options.js";
 import type { ArchiverEvents, DataArchiver } from "../archivers/data-archiver.js";
-import { Subscriber } from "../subscriber.js";
 
 const UPDATE_OPTIONS = { upsert: true, willRetryWrite: true, retryWrites: true } as const satisfies UpdateOptions;
 
-export class ArchiveStatusUpdater extends Subscriber<keyof ArchiverEvents, ArchiverEvents, DataArchiver<CopyMode>> {
-    constructor(private readonly archiveStatusCollection: Collection, private readonly targetMongo: MongoClient, logger: BaseLogger) {
+export class ArchiveStatusUpdater extends Subscriber<ArchiverEvents> {
+    constructor(
+        private readonly archiveStatusCollection: Collection,
+        private readonly targetMongo: MongoClient,
+        logger: BaseLogger,
+    ) {
         super(logger);
         this.selfBound();
     }
@@ -39,12 +43,12 @@ export class ArchiveStatusUpdater extends Subscriber<keyof ArchiverEvents, Archi
         const { acknowledged, matchedCount, upsertedCount, modifiedCount } = await this.archiveStatusCollection.updateOne(
             filter,
             { $set: { [`lastArcId.${field}`]: archiveStatusValue } },
-            UPDATE_OPTIONS
+            UPDATE_OPTIONS,
         );
 
         this.logger.logDebug(
             { title: this.className, message: `${targetCollection.namespace} => ${archiveStatusValue}` },
-            { extra: { filter, field, updateResult: `(${acknowledged})  #-${matchedCount}  U-${upsertedCount}  M-${modifiedCount}` } }
+            { extra: { filter, field, updateResult: `(${acknowledged})  #-${matchedCount}  U-${upsertedCount}  M-${modifiedCount}` } },
         );
     }
 
