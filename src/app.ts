@@ -1,3 +1,4 @@
+import { BaseApp } from "@ldb/base-app";
 import type { BaseLogger } from "@ldb/logger";
 import type { Scheduler } from "@ldb/scheduler";
 import { name, version } from "./metadata.js";
@@ -8,11 +9,7 @@ import { ArchiveProcessor } from "./modules/processors/archive-processor.js";
 import { ArchiveStatusUpdater } from "./modules/status-updaters/archive-status-updater.js";
 import type { SchedulerKeys } from "./types/scheduler.js";
 
-let exiting = false;
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export class App {
+export class App extends BaseApp {
     constructor(
         private readonly scheduler: Scheduler<SchedulerKeys>,
         private readonly archiveInitiator: ArchiveInitiator,
@@ -20,52 +17,9 @@ export class App {
         private readonly singleArchiver: SingleArchiver,
         private readonly multipleArchiver: MultipleArchiver,
         private readonly archiveStatusUpdater: ArchiveStatusUpdater,
-        private readonly logger: BaseLogger,
+        logger: BaseLogger,
     ) {
-        this.selfBound();
-        this.handleExceptions();
-    }
-
-    get className() {
-        return this.constructor.name;
-    }
-
-    private selfBound() {
-        this.handleUncaughtException = this.handleUncaughtException.bind(this);
-        this.handleUnhandledRejection = this.handleUnhandledRejection.bind(this);
-    }
-
-    private handleExceptions() {
-        process.addListener("uncaughtException", this.handleUncaughtException);
-        process.addListener("unhandledRejection", this.handleUnhandledRejection);
-    }
-
-    private async handleUncaughtException(error: Error, origin: NodeJS.UncaughtExceptionOrigin) {
-        this.terminate();
-
-        while (exiting) {
-            await wait(1_000);
-        }
-
-        exiting = true;
-        this.logger.logFatal({ title: name, message: error }, { tags: { event: "uncaughtException" }, extra: { error, origin } });
-
-        await wait(5_000);
-        process.exit(10);
-    }
-
-    private async handleUnhandledRejection(reason: unknown, promise: Promise<unknown>) {
-        this.terminate();
-
-        while (exiting) {
-            await wait(5_000);
-        }
-
-        exiting = true;
-        this.logger.logFatal({ title: name, message: reason }, { tags: { event: "unhandledRejection" }, extra: { reason, promise } });
-
-        await wait(5_000);
-        process.exit(20);
+        super({ name, version }, logger);
     }
 
     initiate() {
@@ -79,10 +33,10 @@ export class App {
 
         this.archiveInitiator.subscribe(this.scheduler);
 
-        this.logger.logWarning({ title: `${name}@${version}`, message: "App has been started." });
+        super.initiate();
     }
 
-    private terminate() {
+    terminate() {
         this.archiveInitiator.unsubscribe(this.scheduler);
 
         this.archiveProcessor.unsubscribe(this.archiveInitiator);
@@ -92,5 +46,7 @@ export class App {
 
         this.archiveStatusUpdater.unsubscribe(this.singleArchiver);
         this.archiveStatusUpdater.unsubscribe(this.multipleArchiver);
+
+        super.terminate();
     }
 }
