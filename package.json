@@ -23,12 +23,12 @@
   ],
   "packageManager": "pnpm@9.14.1",
   "dependencies": {
-    "@ldb/base-app": "0.1.0",
-    "@ldb/healthcheck": "0.1.4",
+    "@ldb/base-app": "0.1.1",
+    "@ldb/healthcheck": "0.1.5",
     "@ldb/logger": "1.1.2",
     "@ldb/mongo": "6.10.3",
     "@ldb/scheduler": "0.4.0",
-    "@ldb/utils": "0.3.4",
+    "@ldb/utils": "0.3.5",
     "awilix": "12.0.3"
   },
   "devDependencies": {

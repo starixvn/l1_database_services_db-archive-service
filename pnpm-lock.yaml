@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@ldb/base-app':
-        specifier: 0.1.0
-        version: 0.1.0
+        specifier: 0.1.1
+        version: 0.1.1
       '@ldb/healthcheck':
-        specifier: 0.1.4
-        version: 0.1.4
+        specifier: 0.1.5
+        version: 0.1.5
       '@ldb/logger':
         specifier: 1.1.2
         version: 1.1.2
@@ -24,8 +24,8 @@ importers:
         specifier: 0.4.0
         version: 0.4.0
       '@ldb/utils':
-        specifier: 0.3.4
-        version: 0.3.4
+        specifier: 0.3.5
+        version: 0.3.5
       awilix:
         specifier: 12.0.3
         version: 12.0.3
@@ -390,8 +390,8 @@ packages:
   '@ldb/ansi-esc@1.0.3':
     resolution: {integrity: sha512-qtQ9Hl1712DUMl08O2Rzd0MbHSuwRhs2k5Y6es+1aXSksKUGtwaGMSmCWGpgBCt8IkPLP3nUtr2htPPCvqTIyg==}
 
-  '@ldb/base-app@0.1.0':
-    resolution: {integrity: sha512-0/RixTrGI2K+z8T5L2Oeh0peCatiXdRN0ReKhE6ZHEhYk5znvzo2MFou9eWbODFDyZvPJEu/fUTPgpWRTRIahQ==}
+  '@ldb/base-app@0.1.1':
+    resolution: {integrity: sha512-fqck0jgNxKOxh0AJUwBu2cmH/pPs+k9Qam3hbTe/2H4aBgap1Sm3dc0oabqddy14eswvuSPDLGiBx9+c0eQiOA==}
 
   '@ldb/base-logger@1.1.4':
     resolution: {integrity: sha512-auDqoBQcm+80788fN7sig1FaEusYoXlMPgtvbUVdqsTTmpCS67L0mlZPiY6ytGzeM4VqxVazU9Im8ug2KftAfA==}
@@ -401,8 +401,8 @@ packages:
     peerDependencies:
       eslint: 9.15.x
 
-  '@ldb/healthcheck@0.1.4':
-    resolution: {integrity: sha512-8Mjtpkps6igW3tGNhNP4ZCu7EBpepnrEWYGT4xlSyqM0Z+lO+8kbCwDBoViWjHtXjqZ48qF2tHYT6H65b8oWMA==}
+  '@ldb/healthcheck@0.1.5':
+    resolution: {integrity: sha512-R4wOj9OVf+I68RDxGC2VWodXXhwPp74l3cDlGHq5cuYZHgCD+OQsFjNgJzeh9S+IDJSq/Yu/YNGgZfMABsrPlw==}
 
   '@ldb/logger@1.1.2':
     resolution: {integrity: sha512-RUgVCp799YbOmorRFhZKNLiZgV/twiLp60eaE2VrfDyvCHm0O8KXWkE5mDsb+AoIyj4cBlpG32prW2PnZy4w1Q==}
@@ -435,6 +435,9 @@ packages:
 
   '@ldb/utils@0.3.4':
     resolution: {integrity: sha512-iCWttrbA6AfY9sMvUHNfIgeGjUQeCPACv7DDuRh9eF0qkvQ8jzBCN9t+rQH8hqq8/t2DIi8GcKAY1ykt3NdgPA==}
+
+  '@ldb/utils@0.3.5':
+    resolution: {integrity: sha512-Pdf9YYkJf6ZHDUDshsRyUM5ua72cSO3SxHspKlxzLdtw5iTlaHbvRXLyHdEP7cUx95ioVtveNtNPqi5ofE9w+Q==}
 
   '@ldb/vitest-config@0.1.4':
     resolution: {integrity: sha512-WLrugHYNx1AWFKvBC/RpTZjiCBsy1NTSWmnZ4wgCH59zKTvuDtYl5fsMmaCqSaA+VqaodnAFdF00gM0BfzWrjQ==}
@@ -2116,9 +2119,9 @@ snapshots:
 
   '@ldb/ansi-esc@1.0.3': {}
 
-  '@ldb/base-app@0.1.0':
+  '@ldb/base-app@0.1.1':
     dependencies:
-      '@ldb/utils': 0.3.4
+      '@ldb/utils': 0.3.5
 
   '@ldb/base-logger@1.1.4':
     dependencies:
@@ -2139,12 +2142,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@ldb/healthcheck@0.1.4':
-    dependencies:
-      '@ldb/logger': 1.1.2
-    transitivePeerDependencies:
-      - debug
-      - supports-color
+  '@ldb/healthcheck@0.1.5': {}
 
   '@ldb/logger@1.1.2':
     dependencies:
@@ -2209,6 +2207,10 @@ snapshots:
   '@ldb/utils@0.3.1': {}
 
   '@ldb/utils@0.3.4':
+    dependencies:
+      '@ldb/base-logger': 1.1.4
+
+  '@ldb/utils@0.3.5':
     dependencies:
       '@ldb/base-logger': 1.1.4
 

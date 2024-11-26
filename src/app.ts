@@ -1,7 +1,7 @@
 import { BaseApp } from "@ldb/base-app";
 import type { BaseLogger } from "@ldb/logger";
 import type { Scheduler } from "@ldb/scheduler";
-import { name, version } from "./metadata.js";
+import type { Metadata } from "@ldb/utils";
 import { MultipleArchiver } from "./modules/archivers/multiple-archiver.js";
 import { SingleArchiver } from "./modules/archivers/single-archiver.js";
 import type { ArchiveInitiator } from "./modules/initiators/archive-initiator.js";
@@ -17,9 +17,10 @@ export class App extends BaseApp {
         private readonly singleArchiver: SingleArchiver,
         private readonly multipleArchiver: MultipleArchiver,
         private readonly archiveStatusUpdater: ArchiveStatusUpdater,
+        metadata: Metadata,
         logger: BaseLogger,
     ) {
-        super({ name, version }, logger);
+        super(metadata, logger);
     }
 
     initiate() {
