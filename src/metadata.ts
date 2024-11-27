@@ -1,6 +1,6 @@
 import type { Metadata } from "@ldb/utils";
 
 export const name = "data-archive-service" as const;
-export const version = "3.0.4-rc.1" as const;
+export const version = "3.0.4" as const;
 
 export const metadata = { name, version } as const satisfies Metadata;
