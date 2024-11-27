@@ -1,3 +1,4 @@
+/** @typedef {import("@ldb/logger").LumiLoggerConfig} LumiLoggerConfig */
 
 import { name, version } from "./metadata.js";
 
