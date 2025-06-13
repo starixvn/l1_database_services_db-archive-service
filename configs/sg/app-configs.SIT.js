@@ -8,7 +8,7 @@ export const healthcheckPort = 5000;
 /** @type {LumiLoggerConfig} */
 export const lumiLoggerConfig = {
     sentryNodeOptions: {
-        dsn: "http://7820c1cec9bc47f1b52a054861b55256@10.2.190.51:9009/295",
+        dsn: "http://a4e9d446189bcd2464e4449f67506eb3@sentryuat-sc.nebula.prod/21",
         environment,
         initialScope: {
             tags: { service: name },
@@ -18,7 +18,7 @@ export const lumiLoggerConfig = {
     skynexOptions: {
         conversationIds: {
             telegram: -1001964283718,
-            teams: "19:b9580a426bbe409fb9457129f486c63b@thread.tacv2",
+            slack: "B08GPPK88MS:T08ACMHMMFS:C090ALHP2DD",
         },
         proxy: {
             protocol: "http",
@@ -45,3 +45,5 @@ export const database = {
 export const schedulerConfig = {
     RUN_ARCHIVE: [600_000, 0],
 };
+
+export const archiveStatusCollectionName = "archive_statuses";
