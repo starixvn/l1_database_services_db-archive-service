@@ -2,7 +2,7 @@
 
 import { name, version } from "./metadata.js";
 
-export const environment = "XD-SIT";
+export const environment = "HD-SIT";
 export const healthcheckPort = 5000;
 
 /** @type {LumiLoggerConfig} */
