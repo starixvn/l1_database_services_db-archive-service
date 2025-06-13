@@ -20,7 +20,7 @@ export class SingleArchiver extends DataArchiver<"SINGLE"> {
         const fromCollection = this.getSourceCollection(from);
         const toCollection = this.getTargetCollection(to);
 
-        this.initUpdateArchiveStatus(to, { name }, log);
+        this.initUpdateArchiveStatus(from.db, to, { name }, log);
         const bulkWriter = new BulkWriter(this.logger);
         bulkWriter.add(fromCollection, toCollection);
 
@@ -52,7 +52,7 @@ export class SingleArchiver extends DataArchiver<"SINGLE"> {
 
         closeCursor(fromDataCursor);
 
-        this.initUpdateArchiveStatus(to, { name }, log);
+        this.initUpdateArchiveStatus(from.db, to, { name }, log);
     }
 
     subscribe(publisher: ArchiveProcessor) {

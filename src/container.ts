@@ -1,6 +1,6 @@
 import { asClass, asValue, BaseContainer } from "@ldb/base-container";
 import type { MongoClient } from "@ldb/mongo";
-import { healthcheckPort, lumiLoggerConfig, schedulerConfig } from "./app-configs.js";
+import { archiveStatusCollectionName, healthcheckPort, lumiLoggerConfig, schedulerConfig } from "./app-configs.js";
 import { App } from "./app.js";
 import { metadata } from "./metadata.js";
 import { MultipleArchiver } from "./modules/archivers/multiple-archiver.js";
@@ -35,6 +35,7 @@ export class Container extends BaseContainer {
     registerDatabases(sourceMongo: MongoClient, targetMongo: MongoClient) {
         this.container.register({
             sourceMongo: asValue(sourceMongo),
+            archiveStatusMongo: asValue(sourceMongo),
             targetMongo: asValue(targetMongo),
         });
 
@@ -43,6 +44,10 @@ export class Container extends BaseContainer {
                 [name]: asValue(sourceMongo.db(db).collection(coll)),
             });
         }
+
+        this.container.register({
+            archiveStatusCollectionName: asValue(archiveStatusCollectionName),
+        });
 
         return this;
     }

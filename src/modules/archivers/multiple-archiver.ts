@@ -17,7 +17,7 @@ export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
         const { from, to, filterPipeline, dataOptions, log } = options;
         const { name, timeAlias, updateOnly, childs, localField } = dataOptions;
 
-        this.initUpdateArchiveStatus(to, { name }, log);
+        this.initUpdateArchiveStatus(from.db, to, { name }, log);
 
         const parentFromColl = this.getSourceCollection(from);
         const parentToColl = this.getTargetCollection(to);
@@ -27,7 +27,7 @@ export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
         for (const child of childs) {
             const { from: fromChild, to: toChild, log: logChild } = child;
 
-            this.initUpdateArchiveStatus(toChild, { name }, logChild);
+            this.initUpdateArchiveStatus(from.db, toChild, { name }, logChild);
 
             const childFromColl = this.getSourceCollection(fromChild);
             const childToColl = this.getTargetCollection(toChild);
@@ -106,10 +106,10 @@ export class MultipleArchiver extends DataArchiver<"MULTIPLE"> {
 
         closeCursor(parentDataCursor);
 
-        this.initUpdateArchiveStatus(to, { name }, log);
+        this.initUpdateArchiveStatus(from.db, to, { name }, log);
         for (const child of childs) {
             const { to: toChild, log: logChild } = child;
-            this.initUpdateArchiveStatus(toChild, { name }, logChild);
+            this.initUpdateArchiveStatus(from.db, toChild, { name }, logChild);
         }
     }
 

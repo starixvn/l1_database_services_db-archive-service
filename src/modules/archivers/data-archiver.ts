@@ -73,11 +73,11 @@ export class DataArchiver<E extends CopyMode> extends Dispatcher<ArchiverEvents,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected async executeCopy(options: ArchiveOptions<E>) {}
 
-    protected initUpdateArchiveStatus(target: ChangeStreamNameSpace, filter: Document, options?: ArchiveStatusConfig) {
+    protected initUpdateArchiveStatus(dbName: ChangeStreamNameSpace["db"], target: ChangeStreamNameSpace, filter: Document, options?: ArchiveStatusConfig) {
         if (!options) {
             return;
         }
-        this.emit<"UPDATE_ARCHIVE_STATUS">("UPDATE_ARCHIVE_STATUS", { target, filter, options });
+        this.emit<"UPDATE_ARCHIVE_STATUS">("UPDATE_ARCHIVE_STATUS", { dbName, target, filter, options } satisfies ArchiveStatusOptions);
     }
 
     subscribe<Event extends StringKeyOf<ProcessorEvents<E>>>(publisher: ArchiveProcessor, event: Event) {

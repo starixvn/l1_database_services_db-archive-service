@@ -7,7 +7,7 @@ export const healthcheckPort = 5000 as const;
 
 export const lumiLoggerConfig = {
     sentryNodeOptions: {
-        dsn: "https://098a0c6ad1d74e8eb39ec7df895e59e0@sentry.lumigame.com/76",
+        dsn: "https://e83926b2bc60caab91f825f6fce3d658@sentry-k8s.lumigame.com/24",
         environment,
         initialScope: {
             tags: { service: name },
@@ -17,7 +17,7 @@ export const lumiLoggerConfig = {
     skynexOptions: {
         conversationIds: {
             telegram: -1001911631568,
-            teams: "19:11eb3bf6c3c240fd993eb8048615835c@thread.tacv2",
+            slack: "B08GPPK88MS:T08ACMHMMFS:C090SSUCJ10",
         },
     },
     environment,
@@ -25,12 +25,12 @@ export const lumiLoggerConfig = {
 } as const satisfies LumiLoggerConfig;
 
 const srcCred = "lmn_archive:LmnArchive" as const;
-const srcSrv = "10.10.50.12:39100,10.10.50.13:39100,10.10.50.14:39100" as const;
-const srcRepl = "L1Local" as const;
+const srcSrv = "10.10.50.12:39400,10.10.50.13:39400,10.10.50.14:39400" as const;
+const srcRepl = "SPLocal0" as const;
 
 const arcCred = "lmn_archive:LmnArchive" as const;
-const arcSrv = "10.10.50.12:39100,10.10.50.13:39100,10.10.50.14:39100" as const;
-const arcRepl = "L1Local" as const;
+const arcSrv = "10.10.50.12:39400,10.10.50.13:39400,10.10.50.14:39400" as const;
+const arcRepl = "SPLocal0" as const;
 
 export const database = {
     sourceUrl: `mongodb://${srcCred}@${srcSrv}/admin?authSource=admin&appName=${encodeURIComponent(name)}&replicaSet=${srcRepl}`,
@@ -40,3 +40,5 @@ export const database = {
 export const schedulerConfig = {
     RUN_ARCHIVE: [60_000, 0],
 } as const satisfies SchedulerConfigs;
+
+export const archiveStatusCollectionName = "archive_statuses" as const;

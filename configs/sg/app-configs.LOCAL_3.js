@@ -8,7 +8,7 @@ export const healthcheckPort = 5000;
 /** @type {LumiLoggerConfig} */
 export const lumiLoggerConfig = {
     sentryNodeOptions: {
-        dsn: "https://098a0c6ad1d74e8eb39ec7df895e59e0@sentry.lumigame.com/76",
+        dsn: "https://65203d3a46ca4b5c95eeba210120b017@sentry-k8s.lumigame.com/21",
         environment,
         initialScope: {
             tags: { service: name },
@@ -18,7 +18,7 @@ export const lumiLoggerConfig = {
     skynexOptions: {
         conversationIds: {
             telegram: -1001964283718,
-            teams: "19:b9580a426bbe409fb9457129f486c63b@thread.tacv2",
+            slack: "B08GPPK88MS:T08ACMHMMFS:C091FAL49UG",
         },
     },
     environment,
@@ -40,3 +40,5 @@ export const database = {
 export const schedulerConfig = {
     RUN_ARCHIVE: [600_000, 0],
 };
+
+export const archiveStatusCollectionName = "archive_statuses";

@@ -1,5 +1,5 @@
 import type { BaseLogger } from "@ldb/logger";
-import type { ChangeStreamNameSpace, Collection, FindOptions, MongoClient, UpdateOptions } from "@ldb/mongo";
+import type { ChangeStreamNameSpace, FindOptions, MongoClient, UpdateOptions } from "@ldb/mongo";
 import { Subscriber } from "@ldb/utils";
 import type { ArchiveStatusOptions, CopyMode } from "../../types/archive-options.js";
 import type { ArchiverEvents, DataArchiver } from "../archivers/data-archiver.js";
@@ -8,7 +8,8 @@ const UPDATE_OPTIONS = { upsert: true, willRetryWrite: true, retryWrites: true }
 
 export class ArchiveStatusUpdater extends Subscriber<ArchiverEvents> {
     constructor(
-        private readonly archiveStatusCollection: Collection,
+        private readonly archiveStatusMongo: MongoClient,
+        private readonly archiveStatusCollectionName: ChangeStreamNameSpace["coll"],
         private readonly targetMongo: MongoClient,
         logger: BaseLogger,
     ) {
@@ -20,13 +21,17 @@ export class ArchiveStatusUpdater extends Subscriber<ArchiverEvents> {
         this.updateArchiveStatus = this.updateArchiveStatus.bind(this);
     }
 
+    private getArchiveStatusCollection(dbName: ChangeStreamNameSpace["db"]) {
+        return this.archiveStatusMongo.db(dbName).collection(this.archiveStatusCollectionName);
+    }
+
     private getTargetCollection(namespace: ChangeStreamNameSpace) {
         const { db, coll } = namespace;
         return this.targetMongo.db(db).collection(coll);
     }
 
     private async updateArchiveStatus(archiveStatusOptions: ArchiveStatusOptions) {
-        const { target, filter, options } = archiveStatusOptions;
+        const { dbName, target, filter, options } = archiveStatusOptions;
         const { field, value } = options;
 
         const targetCollection = this.getTargetCollection(target);
@@ -40,7 +45,7 @@ export class ArchiveStatusUpdater extends Subscriber<ArchiverEvents> {
         }
 
         const { value: archiveStatusValue } = logValue;
-        const { acknowledged, matchedCount, upsertedCount, modifiedCount } = await this.archiveStatusCollection.updateOne(
+        const { acknowledged, matchedCount, upsertedCount, modifiedCount } = await this.getArchiveStatusCollection(dbName).updateOne(
             filter,
             { $set: { [`lastArcId.${field}`]: archiveStatusValue } },
             UPDATE_OPTIONS,

@@ -24,6 +24,7 @@ export type ArchiveOptions<T extends CopyMode> = {
 };
 
 export type ArchiveStatusOptions = {
+    dbName: ChangeStreamNameSpace["db"];
     target: ChangeStreamNameSpace;
     filter: Document;
     options: ArchiveStatusConfig;
