@@ -1,4 +1,5 @@
 import type { LumiLoggerConfig } from "@ldb/logger";
+import type { ChangeStreamNameSpace } from "@ldb/mongo";
 import { name, version } from "./metadata.js";
 import type { SchedulerConfigs } from "./types/scheduler.js";
 
@@ -25,12 +26,12 @@ export const lumiLoggerConfig = {
 } as const satisfies LumiLoggerConfig;
 
 const srcCred = "lmn_archive:LmnArchive" as const;
-const srcSrv = "10.10.50.12:39400,10.10.50.13:39400,10.10.50.14:39400" as const;
-const srcRepl = "SPLocal0" as const;
+const srcSrv = "10.10.50.12:39100,10.10.50.13:39100,10.10.50.14:39100" as const;
+const srcRepl = "L1Local" as const;
 
 const arcCred = "lmn_archive:LmnArchive" as const;
-const arcSrv = "10.10.50.12:39400,10.10.50.13:39400,10.10.50.14:39400" as const;
-const arcRepl = "SPLocal0" as const;
+const arcSrv = "10.10.50.12:39100,10.10.50.13:39100,10.10.50.14:39100" as const;
+const arcRepl = "L1Local" as const;
 
 export const database = {
     sourceUrl: `mongodb://${srcCred}@${srcSrv}/admin?authSource=admin&appName=${encodeURIComponent(name)}&replicaSet=${srcRepl}`,
@@ -42,3 +43,7 @@ export const schedulerConfig = {
 } as const satisfies SchedulerConfigs;
 
 export const archiveStatusCollectionName = "archive_statuses" as const;
+
+export const namespaces = {
+    archiveConfigCollection: { db: "ops_configs", coll: "archive_configs" },
+} as const satisfies Record<string, ChangeStreamNameSpace>;
