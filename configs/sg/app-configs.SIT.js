@@ -1,14 +1,15 @@
 /** @typedef {import("@ldb/logger").LumiLoggerConfig} LumiLoggerConfig */
+/** @typedef {import("@ldb/mongo").ChangeStreamNameSpace} ChangeStreamNameSpace */
 
 import { name, version } from "./metadata.js";
 
-export const environment = "SG-SIT";
+export const environment = "SG-MIS-SIT";
 export const healthcheckPort = 5000;
 
 /** @type {LumiLoggerConfig} */
 export const lumiLoggerConfig = {
     sentryNodeOptions: {
-        dsn: "http://a4e9d446189bcd2464e4449f67506eb3@sentryuat-sc.nebula.prod/21",
+        dsn: "https://a44301722794b9e2d74cb4efc1655964@sentry-kl.sgamesuat.com/19",
         environment,
         initialScope: {
             tags: { service: name },
@@ -20,21 +21,16 @@ export const lumiLoggerConfig = {
             telegram: -1001964283718,
             slack: "B08GPPK88MS:T08ACMHMMFS:C090ALHP2DD",
         },
-        proxy: {
-            protocol: "http",
-            host: "lisasqd.nebula.prod",
-            port: 8801,
-        },
     },
     environment,
 };
 
 const srcCred = "lmn_archive:%4c%6d%6e%41%72%63%68%69%76%65%40%35%31%37";
-const srcSrv = "10.99.99.53:39130,10.99.99.54:39130,10.99.99.188:39130,10.99.99.187:39130";
+const srcSrv = "172.16.4.111:31301";
 const srcRepl = "SabaSIT";
 
 const arcCred = "lmn_archive:%4c%6d%6e%41%72%63%68%69%76%65%40%35%31%37";
-const arcSrv = "10.99.99.53:39135,10.99.99.54:39135,10.99.99.188:39135,10.99.99.187:39135";
+const arcSrv = "172.16.4.111:31351";
 const arcRepl = "SabaSITArc";
 
 export const database = {
@@ -47,3 +43,8 @@ export const schedulerConfig = {
 };
 
 export const archiveStatusCollectionName = "archive_statuses";
+
+/** @type {Record<string, ChangeStreamNameSpace>} */
+export const namespaces = {
+    archiveConfigCollection: { db: "ops_configs", coll: "archive_configs" },
+};

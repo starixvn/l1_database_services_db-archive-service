@@ -1,4 +1,5 @@
 /** @typedef {import("@ldb/logger").LumiLoggerConfig} LumiLoggerConfig */
+/** @typedef {import("@ldb/mongo").ChangeStreamNameSpace} ChangeStreamNameSpace */
 
 import { name, version } from "./metadata.js";
 
@@ -42,3 +43,8 @@ export const schedulerConfig = {
 };
 
 export const archiveStatusCollectionName = "archive_statuses";
+
+/** @type {Record<string, ChangeStreamNameSpace>} */
+export const namespaces = {
+    archiveConfigCollection: { db: "hotdog_ops_configs", coll: "archive_configs" },
+};

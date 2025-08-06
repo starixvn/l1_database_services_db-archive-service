@@ -1,8 +1,9 @@
 /** @typedef {import("@ldb/logger").LumiLoggerConfig} LumiLoggerConfig */
+/** @typedef {import("@ldb/mongo").ChangeStreamNameSpace} ChangeStreamNameSpace */
 
 import { name, version } from "./metadata.js";
 
-export const environment = "HD-KLPROD";
+export const environment = "HD-KL-PROD";
 export const healthcheckPort = 5000;
 
 /** @type {LumiLoggerConfig} */
@@ -47,3 +48,8 @@ export const schedulerConfig = {
 };
 
 export const archiveStatusCollectionName = "archive_statuses";
+
+/** @type {Record<string, ChangeStreamNameSpace>} */
+export const namespaces = {
+    archiveConfigCollection: { db: "hotdog_ops_configs", coll: "archive_configs" },
+};
