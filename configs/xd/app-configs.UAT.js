@@ -1,14 +1,15 @@
 /** @typedef {import("@ldb/logger").LumiLoggerConfig} LumiLoggerConfig */
+/** @typedef {import("@ldb/mongo").ChangeStreamNameSpace} ChangeStreamNameSpace */
 
 import { name, version } from "./metadata.js";
 
-export const environment = "XD-UAT";
+export const environment = "XD-KL-UAT";
 export const healthcheckPort = 5000;
 
 /** @type {LumiLoggerConfig} */
 export const lumiLoggerConfig = {
     sentryNodeOptions: {
-        dsn: "http://f104ec9eef9d9105c0c848525a68a107@sentryuat-sc.nebula.prod/23",
+        dsn: "http://21ae56685b792a67a38aa9ce7f2716cb@sentrysc.ops-kluat.gamora.prod/21",
         environment,
         initialScope: {
             tags: { service: name },
@@ -22,7 +23,7 @@ export const lumiLoggerConfig = {
         },
         proxy: {
             protocol: "http",
-            host: "lisasqd.nebula.prod",
+            host: "iusqd.gamora.prod",
             port: 8801,
         },
     },
@@ -30,11 +31,11 @@ export const lumiLoggerConfig = {
 };
 
 const srcCred = "lmn_archive:%4c%6d%6e%41%72%63%68%69%76%65%40%32%32%30%32%37";
-const srcSrv = "10.99.99.53:39420,10.99.99.54:39420,10.99.99.188:39420,10.99.99.187:39420";
+const srcSrv = "10.146.34.28:39420";
 const srcRepl = "SN-UAT";
 
 const arcCred = "lmn_archive:%4c%6d%6e%41%72%63%68%69%76%65%40%32%32%30%32%37";
-const arcSrv = "10.99.99.53:39425,10.99.99.54:39425,10.99.99.188:39425,10.99.99.187:39425";
+const arcSrv = "10.146.34.28:39425";
 const arcRepl = "SN-UATArc";
 
 export const database = {
@@ -47,3 +48,8 @@ export const schedulerConfig = {
 };
 
 export const archiveStatusCollectionName = "archive_statuses";
+
+/** @type {Record<string, ChangeStreamNameSpace>} */
+export const namespaces = {
+    archiveConfigCollection: { db: "ops_configs", coll: "archive_configs" },
+};
